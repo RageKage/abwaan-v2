@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ---------- PROFILES ----------
+    match /profiles/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid)
+        && (!('username' in request.resource.data) || request.resource.data.username == null);
+      // Username is claimed via Cloud Function (admin) and is locked here.
+      allow update: if isOwner(uid)
+        && request.resource.data.username == resource.data.username;
+      allow delete: if false;
+    }
+
+    // ---------- PRIVATE USERS ----------
+    match /privateUsers/{uid} {
+      allow read, create, update: if isOwner(uid);
+      allow delete: if false;
+    }
+
+    // ---------- USERNAMES REGISTRY ----------
+    match /usernames/{name} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------- SUBMISSIONS ----------
+    match /submissions/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.username == resource.data.username
+        && request.resource.data.displayName == resource.data.displayName
+      allow delete: if isOwner(resource.data.uid);
+
+      match /votes/{uid} {
+        allow read: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    // ---------- DEFAULT DENY ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
