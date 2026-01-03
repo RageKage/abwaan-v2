@@ -14,10 +14,7 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 
-const toggle = () => {
-  isOpen.value = !isOpen.value
-}
-
+const toggle = () => { isOpen.value = !isOpen.value }
 const select = (value: T) => {
   emit('update:modelValue', value)
   isOpen.value = false
@@ -29,57 +26,50 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <template>
-  <div class="relative inline-block text-left" ref="containerRef">
+  <div class="relative w-full md:w-auto" ref="containerRef">
     <button
       type="button"
-      class="inline-flex items-center justify-between gap-x-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-carrotOrange-500/20"
+      class="w-full md:w-auto flex items-center justify-between gap-3 px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 hover:bg-gray-50 transition-colors focus:outline-none"
       @click="toggle"
     >
-      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider mr-1" v-if="label">{{ label }}:</span>
+      <span class="text-gray-400" v-if="label">{{ label }}:</span>
       <span>{{ options.find(o => o.key === modelValue)?.label }}</span>
-      <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <svg
+        class="h-3 w-3 transition-transform duration-300"
+        :class="isOpen ? 'rotate-180 text-carrotOrange-600' : 'text-gray-300'"
+        viewBox="0 0 20 20" fill="currentColor"
+      >
         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
       </svg>
     </button>
 
     <transition
       enter-active-class="transition ease-out duration-100"
-      enter-from-class="transform opacity-0 scale-95"
-      enter-to-class="transform opacity-100 scale-100"
+      enter-from-class="transform opacity-0 translate-y-2"
+      enter-to-class="transform opacity-100 translate-y-0"
       leave-active-class="transition ease-in duration-75"
-      leave-from-class="transform opacity-100 scale-100"
-      leave-to-class="transform opacity-0 scale-95"
+      leave-from-class="transform opacity-100 translate-y-0"
+      leave-to-class="transform opacity-0 translate-y-2"
     >
       <div
         v-if="isOpen"
-        class="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
+        class="absolute right-0 top-full z-50 w-full md:w-56 bg-white border border-gray-200 shadow-xl"
       >
-        <div class="px-1 py-1">
+        <div class="flex flex-col">
           <button
             v-for="option in options"
             :key="String(option.key)"
-            class="group flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-            :class="[
-              modelValue === option.key ? 'bg-carrotOrange-50 text-carrotOrange-600' : 'text-gray-700 hover:bg-gray-50'
-            ]"
+            class="flex items-center justify-between px-6 py-3 text-xs font-bold uppercase tracking-widest text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+            :class="modelValue === option.key ? 'text-carrotOrange-600' : 'text-gray-500'"
             @click="select(option.key)"
           >
             {{ option.label }}
-            <span v-if="modelValue === option.key" class="ml-auto text-carrotOrange-600">
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
+            <span v-if="modelValue === option.key" class="w-1.5 h-1.5 rounded-full bg-carrotOrange-600"></span>
           </button>
         </div>
       </div>

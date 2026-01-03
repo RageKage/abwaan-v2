@@ -1,164 +1,235 @@
+<script setup lang="ts">
+import landingImage from '@/assets/images/lido_beach_fiat.jpg'
+import abwaanLogo from '@/assets/archive/wisdom_2.svg'
+</script>
+
 <template>
-  <div
-    class="bg-gray-50 min-h-screen selection:bg-carrotOrange-200 selection:text-carrotOrange-900 font-sans"
-  >
-    <div
-      class="relative bg-gray-900 text-white rounded-b-[3rem] sm:rounded-[4rem] shadow-2xl shadow-gray-900/20 overflow-hidden pt-32 pb-48 px-6 text-center z-10"
-    >
-      <div class="absolute inset-0 z-0">
-        <img
-          :src="landingImage"
-          alt="Vintage Somali Landscape"
-          class="w-full h-full object-cover opacity-40 mix-blend-overlay grayscale contrast-125"
-        />
-        <div
-          class="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/80 to-gray-900"
-        ></div>
-      </div>
+  <div class="selection:bg-gray-900 selection:text-white font-sans text-gray-900 pt-24 pb-24">
 
-      <div
-        class="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay z-10"
-        style="
-          background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%221%22/%3E%3C/svg%3E');
-        "
-      ></div>
+    <div class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
 
-      <div
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-carrotOrange-500/10 blur-[120px] rounded-full pointer-events-none z-10"
-      ></div>
+      <header class="border-b border-gray-200">
+        <div class="grid lg:grid-cols-12 min-h-[85vh]">
 
-      <div class="relative z-20 max-w-4xl mx-auto space-y-10">
-        <span
-          class="inline-block px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase text-carrotOrange-400"
-        >
-          The Origin Story
+          <div class="lg:col-span-7 p-10 lg:p-20 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col justify-between relative bg-white">
+            <div class="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;">
+            </div>
+
+            <div class="relative z-10">
+              <span class="inline-flex items-center gap-2 mb-8 px-3 py-1 border border-gray-900 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit">
+                Est. 2026
+              </span>
+              <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif tracking-tighter leading-[0.9] mb-8">
+                Preserving <br/>
+                <span class="text-carrotOrange-600">The Oral.</span>
+              </h1>
+            </div>
+
+            <div class="relative z-10 max-w-xl">
+              <p class="text-xl md:text-2xl font-light text-gray-500 leading-relaxed border-l-2 border-carrotOrange-500 pl-6">
+                We are building a digital vault for <span class="font-serif italic text-gray-900">Gabay</span> and <span class="font-serif italic text-gray-900">Maahmaahyo</span> before the algorithm buries them forever.
+              </p>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 relative overflow-hidden group bg-gray-50">
+            <img
+              :src="landingImage"
+              alt="Somali Landscape"
+              class="absolute inset-0 w-full h-full object-cover transition-all duration-[2s] ease-in-out grayscale group-hover:grayscale-0 group-hover:scale-105"
+            />
+            <div class="absolute inset-0 bg-gray-900/10 mix-blend-multiply pointer-events-none"></div>
+
+            <div class="absolute bottom-10 left-10 bg-white/95 backdrop-blur px-6 py-4 border border-white/20 shadow-sm">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-1">Figure 1.0</p>
+              <p class="font-serif text-lg text-gray-900">The landscape of memory.</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="border-b border-gray-200">
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+
+          <div class="p-12 lg:p-16 bg-gray-50 flex flex-col justify-between min-h-[400px]">
+            <span class="text-carrotOrange-600 text-6xl font-serif">01.</span>
+            <div>
+              <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">The Trigger</h2>
+              <p class="text-xl font-serif text-gray-900 leading-relaxed">
+                "I would stumble across incredible pieces of Somali poetry on TikTok. I’d screenshot them thinking, <span class="italic text-gray-500">'I need to save this.'</span>"
+              </p>
+            </div>
+          </div>
+
+          <div class="p-12 lg:p-16 bg-white flex flex-col justify-between min-h-[400px]">
+            <span class="text-gray-200 text-6xl font-serif">02.</span>
+            <div>
+              <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-4">The Decay</h2>
+              <p class="text-xl font-serif text-gray-900 leading-relaxed">
+                Feeds move fast. Screenshots get buried. Accounts get deleted. History slips through the cracks of the refresh button.
+              </p>
+            </div>
+          </div>
+
+          <div class="p-12 lg:p-16 bg-gray-900 text-white flex flex-col justify-center min-h-[400px]">
+            <h2 class="text-3xl md:text-4xl font-serif leading-tight mb-8">
+              "We didn't need another feed. We needed a sanctuary."
+            </h2>
+            <div class="h-px w-full bg-gray-700 mb-4"></div>
+            <p class="text-gray-500 font-mono text-xs uppercase tracking-widest">
+              /// SYSTEM: ARCHIVE INITIALIZED
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="border-b border-gray-200">
+        <div class="grid lg:grid-cols-12 min-h-[600px]">
+
+          <div class="lg:col-span-1 p-8 border-b lg:border-b-0 lg:border-r border-gray-200 flex items-center justify-center bg-gray-50">
+            <h2 class="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-400 lg:writing-vertical-lr lg:rotate-180">
+              Project Timeline
+            </h2>
+          </div>
+
+          <div class="lg:col-span-5 p-12 lg:p-20 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 transition-colors duration-500 group">
+            <div class="h-full flex flex-col justify-between">
+              <div class="space-y-4">
+                <span class="inline-block px-2 py-1 border border-gray-200 rounded text-[10px] font-mono text-gray-400 uppercase">V1.0 BETA</span>
+                <h3 class="text-5xl font-serif italic text-gray-300 decoration-gray-200 decoration-2 line-through decoration-wavy group-hover:text-gray-400 transition-colors">
+                  Wisdom Weyn
+                </h3>
+              </div>
+              <div class="mt-12">
+                <p class="text-lg text-gray-500 leading-relaxed font-light">
+                  The "Big Wisdom" phase. A rough, personal repository built between school assignments. It was raw, functional, and unpolished.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 p-12 lg:p-20 bg-carrotOrange-50/10">
+            <div class="h-full flex flex-col justify-between">
+              <div class="space-y-4">
+                <span class="inline-block px-2 py-1 bg-gray-900 text-white rounded text-[10px] font-mono uppercase">V2.0 LIVE BETA</span>
+                <h3 class="text-5xl font-serif text-gray-900">Abwaan</h3>
+              </div>
+              <div class="mt-12">
+                <p class="text-2xl font-serif text-gray-900 mb-4">The Custodian.</p>
+                <p class="text-lg text-gray-600 leading-relaxed font-light max-w-md">
+                   As the vision grew, the name became clear: <span class="border-b border-carrotOrange-500 text-gray-900">Abwaan</span>—the Somali custodian of culture,
+                  the poet, the scholar, the one who keeps history alive.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+<section class="border-b border-gray-200">
+        <div class="grid lg:grid-cols-12">
+
+           <div class="lg:col-span-5 p-12 lg:p-20 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50 flex flex-col justify-center">
+              <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-carrotOrange-600 mb-4 block">
+                 Archive Status
+              </span>
+              <h2 class="text-4xl font-serif text-gray-900 leading-tight">
+                 What is already <br/> saved.
+              </h2>
+              <p class="mt-4 text-sm text-gray-500 font-mono">
+                 // A snapshot of the material that has been preserved so far.
+              </p>
+           </div>
+
+           <div class="lg:col-span-7 p-12 lg:p-20 bg-white flex flex-col justify-center">
+
+              <p class="text-2xl md:text-3xl font-light text-gray-400 leading-tight mb-8">
+                 We have archived over <strong class="text-gray-900 font-serif font-medium">300 proverbs</strong> from diverse sources, plus at least <strong class="text-gray-900 font-serif font-medium">100 poems</strong> in raw form.
+              </p>
+
+              <div class="border-l-2 border-gray-200 pl-6">
+                 <p class="text-lg text-gray-500 leading-relaxed">
+                    Most lack translation, word-by-word meaning, or context. We hope to assign these entries to contributors who can provide this depth—allowing them to claim authorship of the context when the site goes live.
+                 </p>
+              </div>
+
+           </div>
+
+        </div>
+      </section>
+
+      <section class="border-b border-gray-200 overflow-hidden relative">
+        <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[30vw] font-serif text-gray-50 opacity-50 select-none z-0">
+          1960
         </span>
 
-        <h1 class="text-5xl md:text-8xl font-serif tracking-tight mb-4 drop-shadow-2xl text-white">
-          It started with <br />
-          <span class="italic text-gray-400 font-light">a lost screenshot.</span>
-        </h1>
-      </div>
-    </div>
+        <div class="grid lg:grid-cols-2 min-h-[80vh] relative z-10">
 
-    <div class="max-w-4xl mx-auto px-6 -mt-32 relative z-20 pb-32">
-      <div class="bg-white p-10 md:p-16 rounded-[2.5rem] shadow-xl border border-gray-100 mb-12">
-        <div class="flex items-center gap-3 mb-8">
-          <span class="h-px w-8 bg-carrotOrange-500"></span>
-          <span class="text-xs font-bold text-carrotOrange-600 uppercase tracking-[0.2em]"
-            >The Spark</span
-          >
-        </div>
+          <div class="p-12 lg:p-24 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-gray-200">
+            <div class="flex items-center gap-4 mb-8">
+               <div class="w-3 h-3 bg-carrotOrange-500 rounded-full"></div>
+               <span class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Visual Language</span>
+            </div>
+            <h2 class="text-5xl md:text-7xl font-serif text-gray-900 mb-8 leading-none">
+              Two Faces.<br/>One Voice.
+            </h2>
+            <p class="text-xl text-gray-600 font-light leading-relaxed mb-8">
 
-        <h2 class="text-3xl md:text-4xl font-serif text-gray-900 mb-8 leading-tight">
-          "I struggle to remember or relocate these gems."
-        </h2>
-
-        <div class="prose prose-lg text-gray-600 leading-relaxed font-light">
-          <p class="mb-6">
-            Like many of us, I would stumble across incredible pieces of Somali poetry or wisdom on
-            TikTok, Twitter, and Pinterest. I’d screenshot them, thinking,
-            <em>"I need to save this."</em>
-          </p>
-          <p class="mb-6">
-            But the feeds move fast. The screenshots got buried. The accounts got deleted. The
-            history was slipping through the cracks of the algorithm.
-          </p>
-          <p>
-            I realized we didn't need another social feed. We needed a vault. A sanctuary where
-            these words could rest permanently, safe from the refresh button.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-8 mb-12">
-        <div
-          class="bg-gray-900 text-white p-10 rounded-[2.5rem] shadow-xl flex flex-col justify-center relative overflow-hidden group"
-        >
-          <div
-            class="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
-            style="
-              background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%221%22/%3E%3C/svg%3E');
-            "
-          ></div>
-
-          <h3
-            class="text-2xl font-serif text-carrotOrange-400 mb-4 italic group-hover:translate-x-1 transition-transform"
-          >
-            Wisdom Weyn
-          </h3>
-          <p class="text-gray-400 font-light leading-relaxed">
-            The project began under the name <strong>"Wisdom Weyn"</strong> (Big Wisdom). It was a
-            rough, personal repository built between school assignments and late-night coding
-            sessions.
-          </p>
-        </div>
-
-        <div
-          class="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col justify-center group"
-        >
-          <h3
-            class="text-2xl font-serif text-gray-900 mb-4 italic group-hover:translate-x-1 transition-transform"
-          >
-            Abwaan
-          </h3>
-          <p class="text-gray-600 font-light leading-relaxed">
-            As the vision grew, so did the name. <strong>"Abwaan"</strong> refers to the Somali
-            custodian of culture—the poet, the scholar, the one who keeps the history alive.
-          </p>
-        </div>
-      </div>
-
-      <div
-        class="bg-carrotOrange-50 p-10 md:p-16 rounded-[2.5rem] border border-carrotOrange-100 mb-24 relative overflow-hidden"
-      >
-        <div class="relative z-10 grid md:grid-cols-12 gap-12 items-center">
-  <div class="md:col-span-7">
-  <div class="flex items-center gap-3 mb-6">
-    <span class="h-px w-8 bg-carrotOrange-500"></span>
-    <span class="text-xs font-bold text-carrotOrange-600 uppercase tracking-[0.2em]">The Original Concept</span>
-  </div>
-  <h2 class="text-3xl font-serif text-gray-900 mb-6">Two faces. One voice.</h2>
-
-  <p class="text-gray-700 text-lg font-light leading-relaxed mb-6">
-    When Abwaan began, our identity was defined by the silhouettes of a Two eldery Somali man wearing a <em>Koofiyad</em> and a woman wearing a <em>Garbasaar</em>.
-  </p>
-  <p class="text-gray-700 text-lg font-light leading-relaxed">
+              When Abwaan began, our identity was defined by the silhouettes of a Two eldery Somali man wearing a <span class="italic font-serif text-gray-900">Koofiyad</span> and a woman wearing a <span class="italic font-serif text-gray-900">Garbasaar</span>.
+            </p>
+            <p class="text-lg text-gray-500 font-light leading-relaxed">
+              This duality represents the oral tradition: a conversation between genders and generations. Even as we modernize, this concept remains our core.
+            </p>
+              <p class="text-gray-700 text-lg font-light leading-relaxed">
     This represented the duality of our oral tradition. From the lullabies sung by mothers to the <em>Buraanbur</em> chanted at weddings, our history has always been a conversation between genders and generations.
   </p>
   <p class="text-gray-500 text-sm font-mono mt-6 uppercase tracking-wider">
-    * Although the brand has evolved, this symbol remains the heart of our mission.
-  </p>
-</div>
-
-          <div class="md:col-span-5 flex justify-center">
-            <img
-              :src="abwaanLogo"
-              alt="Abwaan Logo: Two Faces"
-              class="w-64 h-auto object-contain opacity-90 mix-blend-multiply drop-shadow-sm hover:scale-105 transition-transform duration-500"
-            />
+    * WHILE OUR NEW SYMBOL—THE ORANGE KNOT—WEAVES THESE NARRATIVES INTO A MODERN DIGITAL FABRIC, THIS ORIGINAL IMAGE REMAINS THE HEART OF OUR MISSION.
+</p>
           </div>
-        </div>
-      </div>
 
-      <div class="text-center">
-        <h2 class="text-4xl md:text-5xl font-serif text-gray-900 mb-8">The archive is open.</h2>
-        <p class="text-gray-500 text-lg mb-12 max-w-xl mx-auto font-light">
-          Whether you are a student, a creative, or just reconnecting with your roots—welcome home.
-        </p>
-        <router-link
-          to="/collections"
-          class="inline-block px-12 py-5 bg-gray-900 text-white rounded-2xl font-bold text-sm tracking-[0.15em] uppercase hover:bg-carrotOrange-500 hover:scale-105 transition-all duration-300 shadow-xl shadow-gray-900/20"
-        >
-          Explore the Collection
-        </router-link>
-      </div>
+          <div class="flex items-center justify-center p-12 lg:p-24 bg-gray-50">
+            <div class="relative w-full max-w-md aspect-square flex items-center justify-center rounded-full border border-gray-200 bg-white  shadow-sm">
+              <div class="absolute inset-0 border border-gray-200 rounded-full scale-110 opacity-50 border-dashed animate-[spin_60s_linear_infinite]"></div>
+              <img
+                :src="abwaanLogo"
+                alt="Abwaan Logo"
+
+              />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="bg-gray-50">
+        <div class="grid md:grid-cols-2">
+
+          <router-link to="/contribute" class="group relative block p-16 lg:p-24 border-b md:border-b-0 md:border-r border-gray-200 hover:bg-carrotOrange-500 transition-colors duration-500 overflow-hidden">
+             <div class="relative z-10">
+               <span class="block text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-6 group-hover:text-white/70 transition-colors">Action 01</span>
+               <span class="text-5xl md:text-7xl font-serif text-gray-900 group-hover:text-white transition-colors">Contribute</span>
+               <span class="block mt-6 text-gray-500 font-mono text-xs uppercase tracking-widest group-hover:text-white/80 transition-colors">
+                 Add your piece to the vault &rarr;
+               </span>
+             </div>
+          </router-link>
+
+          <router-link to="/collections" class="group relative block p-16 lg:p-24 hover:bg-gray-900 transition-colors duration-500 overflow-hidden">
+             <div class="relative z-10">
+               <span class="block text-xs font-bold uppercase tracking-[0.2em] text-gray-400 mb-6">Action 02</span>
+               <span class="text-5xl md:text-7xl font-serif text-gray-900 group-hover:text-white transition-colors">Explore</span>
+               <span class="block mt-6 text-gray-500 font-mono text-xs uppercase tracking-widest group-hover:text-gray-400 transition-colors">
+                 Browse the Archive &rarr;
+               </span>
+             </div>
+          </router-link>
+
+        </div>
+      </section>
+
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import landingImage from '@/assets/images/lido_beach_fiat.jpg'
-
-import abwaanLogo from '@/assets/archive/wisdom_weyn_logo_2.svg'
-</script>

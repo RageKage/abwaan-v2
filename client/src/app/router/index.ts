@@ -52,6 +52,16 @@ const routes: RouteRecordRaw[] = [
     name: 'public-profile',
     component: () => import('@/features/profile/PublicProfilePage.vue'),
   },
+  {
+    path: '/beta/status',
+    name: 'beta-status',
+    component: () => import('@/features/home/BetaStatusPage.vue'),
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('@/features/home/NotFoundPage.vue'),
+  },
 ]
 
 const router = createRouter({

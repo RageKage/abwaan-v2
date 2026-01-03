@@ -75,178 +75,177 @@ watch(() => route.params.id, () => { void loadSubmission() })
 </script>
 
 <template>
-  <main class="min-h-screen w-full bg-gray-50 px-4 py-8 sm:px-6 lg:px-8 font-sans selection:bg-carrotOrange-100 selection:text-carrotOrange-900 pb-24">
+  <main class="w-full font-sans text-gray-900 pt-24 pb-24">
 
-    <div v-if="isLoading" class="flex h-[80vh] items-center justify-center">
-      <div class="flex flex-col items-center gap-4">
-        <div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-carrotOrange-500"></div>
-        <p class="text-xs font-bold uppercase tracking-widest text-gray-400">Loading Archive...</p>
+    <div v-if="isLoading" class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
+      <div class="flex flex-col items-center gap-6">
+        <div class="h-12 w-12 animate-spin rounded-full border-2 border-gray-200 border-t-carrotOrange-500"></div>
+        <p class="font-mono text-xs uppercase tracking-widest text-gray-400">Retrieving Record...</p>
       </div>
     </div>
 
-    <div v-else-if="error" class="flex h-[80vh] items-center justify-center text-center">
-      <div>
-        <h2 class="text-2xl font-serif text-gray-900 mb-2">Item Unavailable</h2>
-        <p class="text-gray-500 mb-6">{{ error }}</p>
-        <button @click="loadSubmission" class="text-sm font-bold text-carrotOrange-600 hover:underline">Try Again</button>
+    <div v-else-if="error" class="flex h-[80vh] items-center justify-center text-center border-t border-b border-gray-200">
+      <div class="max-w-md p-12 border border-gray-200 bg-gray-50">
+        <h2 class="text-3xl font-serif text-gray-900 mb-4">Record Unavailable</h2>
+        <p class="text-gray-500 mb-8 font-light">{{ error }}</p>
+        <button @click="loadSubmission" class="px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors">Try Again</button>
       </div>
     </div>
 
-    <div v-else-if="submission" class="max-w-7xl mx-auto">
+    <div v-else-if="submission" class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
 
-      <nav class="mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-        <router-link to="/collections" class="hover:text-carrotOrange-600 transition-colors">Archive</router-link>
-        <span class="text-gray-300">/</span>
-        <span class="text-carrotOrange-600">{{ submission.type }}</span>
+      <nav class="border-b border-gray-200 bg-gray-50 px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
+           <router-link to="/collections" class="text-gray-400 hover:text-gray-900 transition-colors">Archive</router-link>
+           <span class="text-gray-300">/</span>
+           <span class="text-carrotOrange-600">{{ submission.type }}</span>
+           <span class="text-gray-300">/</span>
+           <span class="text-gray-900">ID: {{ submission.id.slice(0, 8) }}</span>
+        </div>
+        <div class="hidden md:block text-[10px] font-mono text-gray-400">
+           RECORDED: {{ formatSubmissionDate(submission.createdAt) }}
+        </div>
       </nav>
 
-      <div class="grid lg:grid-cols-12 gap-8 items-start">
+      <div class="grid lg:grid-cols-12 min-h-screen">
 
-        <div class="lg:col-span-8 space-y-8">
+        <div class="lg:col-span-8 border-b lg:border-b-0 lg:border-r border-gray-200 bg-white">
 
-          <article 
+          <article
             v-motion
-            :initial="{ opacity: 0, y: 20 }"
-            :enter="{ opacity: 1, y: 0 }"
-            class="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-sm border border-gray-100 relative overflow-hidden"
+            :initial="{ opacity: 0 }"
+            :enter="{ opacity: 1 }"
+            class="p-12 lg:p-20"
           >
-            <header class="mb-10">
-              <div class="flex flex-wrap items-center gap-4 mb-6">
-                 <span class="px-3 py-1 rounded-full bg-gray-100 text-[10px] font-bold tracking-widest uppercase text-gray-500">
-                    {{ submission.language === 'so' ? 'Somali' : 'English' }}
-                 </span>
-                 <span class="text-xs font-bold text-gray-300">•</span>
-                 <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    {{ formatSubmissionDate(submission.createdAt) }}
-                 </span>
-              </div>
-              <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-medium text-gray-900 leading-[1.1] mb-2">
-                <span v-if="submission.type === 'Proverb'">{{ submission.text }}</span>
-                <span v-else>{{ submission.title || 'Untitled Piece' }}</span>
-              </h1>
-            </header>
+            <div class="mb-16">
+               <div class="flex flex-wrap gap-4 mb-8">
+                  <span class="inline-block px-3 py-1 border border-gray-900 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                     {{ submission.language === 'so' ? 'Somali' : 'English' }}
+                  </span>
+                  <span v-if="submission.origin !== 'original'" class="inline-block px-3 py-1 border border-gray-200 text-gray-500 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                     {{ submission.origin }}
+                  </span>
+               </div>
 
-            <div v-if="submission.type === 'Poetry'" class="prose prose-xl prose-gray max-w-none">
-              <p class="whitespace-pre-line font-serif leading-loose text-gray-800 italic">
-                "{{ submission.text }}"
-              </p>
+               <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl leading-tight text-gray-900 mb-8">
+                  <span v-if="submission.type === 'Proverb'">{{ submission.text }}</span>
+                  <span v-else>{{ submission.title || 'Untitled Piece' }}</span>
+               </h1>
+
+               <div v-if="submission.type === 'Poetry'" class="prose prose-xl prose-gray max-w-none">
+                  <p class="whitespace-pre-line font-serif leading-loose text-gray-600 italic border-l-2 border-carrotOrange-500 pl-8">
+                    "{{ submission.text }}"
+                  </p>
+               </div>
+            </div>
+
+            <div v-if="submission.meaning || submission.translation" class="grid gap-12 pt-12 border-t border-gray-200">
+
+               <div v-if="submission.meaning" class="group">
+                  <span class="block text-xs font-mono text-gray-400 mb-4">/// INTERPRETATION</span>
+                  <p class="text-xl text-gray-800 font-light leading-relaxed">
+                     {{ submission.meaning }}
+                  </p>
+               </div>
+
+               <div v-if="submission.translation" class="group">
+                  <span class="block text-xs font-mono text-gray-400 mb-4">/// ENGLISH TRANSLATION</span>
+                  <p class="text-xl font-serif italic text-gray-500 leading-relaxed">
+                     "{{ submission.translation }}"
+                  </p>
+               </div>
+            </div>
+
+            <div v-if="submission.origin && submission.origin !== 'original' && submission.source" class="mt-16 p-8 bg-gray-50 border-l-4 border-gray-200">
+               <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Historical Reference</span>
+               <div class="grid gap-2">
+                  <p class="text-lg font-serif text-gray-900">{{ submission.source.name }}</p>
+                  <p v-if="submission.source.notes" class="text-sm text-gray-500 italic">{{ submission.source.notes }}</p>
+                  <a v-if="submission.source.url" :href="submission.source.url" target="_blank" class="text-xs font-bold text-carrotOrange-600 uppercase tracking-wider hover:underline mt-2 inline-block">
+                     View Source Material &rarr;
+                  </a>
+               </div>
             </div>
           </article>
-
-          <div v-if="submission.meaning || submission.translation || submission.source" class="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-sm border border-gray-100">
-
-             <div v-if="submission.meaning" class="mb-10">
-                <h3 class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
-                  <span class="w-2 h-2 rounded-full bg-carrotOrange-400"></span>
-                  Interpretation
-                </h3>
-                <p class="text-lg text-gray-700 leading-relaxed whitespace-pre-line">
-                  {{ submission.meaning }}
-                </p>
-             </div>
-
-             <div v-if="submission.translation" class="mb-10">
-                <h3 class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
-                  <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                  English Translation
-                </h3>
-                <p class="text-xl font-serif italic text-gray-600 leading-relaxed">
-                  "{{ submission.translation }}"
-                </p>
-             </div>
-
-             <div v-if="submission.origin && submission.origin !== 'original'" class="pt-8 border-t border-gray-100">
-                <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Origin & Source</h3>
-                <div class="bg-gray-50 rounded-xl p-4 inline-block min-w-[50%]">
-                   <p class="text-sm font-bold text-gray-900 capitalize mb-1">{{ submission.origin }}</p>
-                   <div v-if="submission.source">
-                      <p class="text-sm text-gray-600 font-medium">{{ submission.source.name }}</p>
-                      <p v-if="submission.source.notes" class="text-xs text-gray-500 italic mt-1">{{ submission.source.notes }}</p>
-                      <a v-if="submission.source.url" :href="submission.source.url" target="_blank" class="text-xs font-bold text-carrotOrange-600 hover:underline mt-2 inline-block">View Reference</a>
-                   </div>
-                </div>
-             </div>
-          </div>
-
         </div>
 
-        <aside class="lg:col-span-4 lg:sticky lg:top-8">
+        <aside class="lg:col-span-4 bg-gray-50 flex flex-col h-full border-b border-gray-200">
 
-          <div class="bg-white rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-
-            <div class="p-6 border-b border-gray-100 bg-gray-50/50">
-              <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Contributed By</h3>
-              <router-link :to="`/p/${submission.uid}`" class="flex items-center gap-4 group">
-                <div class="h-12 w-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-lg font-bold text-gray-500 group-hover:border-carrotOrange-300 transition-colors">
-                  {{ submissionAuthorInitial(submission) }}
-                </div>
-                <div>
-                  <p class="text-sm font-bold text-gray-900 group-hover:text-carrotOrange-700 transition-colors">
-                    {{ authorName || 'Anonymous' }}
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    {{ authorUsername ? '@' + authorUsername : 'Community Member' }}
-                  </p>
-                </div>
+           <div class="p-10 border-b border-gray-200 bg-white">
+              <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6">Archived By</span>
+              <router-link :to="`/p/${submission.uid}`" class="flex items-center gap-6 group">
+                 <div class="h-16 w-16 bg-gray-100 border border-gray-200 flex items-center justify-center text-xl font-bold text-gray-400 group-hover:bg-carrotOrange-500 group-hover:text-white transition-colors duration-300">
+                    {{ submissionAuthorInitial(submission) }}
+                 </div>
+                 <div>
+                    <p class="text-lg font-bold text-gray-900 group-hover:text-carrotOrange-600 transition-colors">
+                       {{ authorName || 'Anonymous' }}
+                    </p>
+                    <p class="text-xs font-mono text-gray-400 mt-1">
+                       {{ authorUsername ? '@' + authorUsername : 'Community Member' }}
+                    </p>
+                 </div>
               </router-link>
-            </div>
+           </div>
 
-            <div class="p-6 border-b border-gray-100">
-              <h3 class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4 text-center">Community Value</h3>
-              <div class="flex items-center justify-between bg-gray-50 rounded-xl p-1">
-                <button
-                  @click="handleVote(1)"
-                  :disabled="submissionsStore.busy || isGuest"
-                  :class="['flex-1 py-3 rounded-lg flex items-center justify-center transition-all', userVote === 1 ? 'bg-white shadow-sm text-green-600' : 'text-gray-400 hover:bg-white hover:text-green-600']"
-                >
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
-                </button>
-                <div class="px-4 font-mono font-bold text-gray-900 text-lg">
-                  {{ submission.voteScore }}
-                </div>
-                <button
-                  @click="handleVote(-1)"
-                  :disabled="submissionsStore.busy || isGuest"
-                  :class="['flex-1 py-3 rounded-lg flex items-center justify-center transition-all', userVote === -1 ? 'bg-white shadow-sm text-red-600' : 'text-gray-400 hover:bg-white hover:text-red-600']"
-                >
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </button>
+           <div class="p-10 border-b border-gray-200 flex-1">
+              <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6">Community Validation</span>
+
+              <div class="flex items-center justify-between bg-white border border-gray-200 p-2">
+                 <button
+                   @click="handleVote(1)"
+                   :disabled="submissionsStore.busy || isGuest"
+                   class="flex-1 py-4 flex items-center justify-center hover:bg-green-50 text-gray-300 hover:text-green-600 transition-colors disabled:opacity-50"
+                   :class="{ 'text-green-600 bg-green-50': userVote === 1 }"
+                 >
+                    <span class="text-xl">▲</span>
+                 </button>
+
+                 <div class="px-6 py-2 border-x border-gray-200 font-mono text-2xl font-bold text-gray-900">
+                    {{ submission.voteScore }}
+                 </div>
+
+                 <button
+                   @click="handleVote(-1)"
+                   :disabled="submissionsStore.busy || isGuest"
+                   class="flex-1 py-4 flex items-center justify-center hover:bg-red-50 text-gray-300 hover:text-red-600 transition-colors disabled:opacity-50"
+                   :class="{ 'text-red-600 bg-red-50': userVote === -1 }"
+                 >
+                    <span class="text-xl">▼</span>
+                 </button>
               </div>
-            </div>
+              <p class="text-[10px] text-gray-400 mt-4 text-center leading-relaxed">
+                 Vote to validate the authenticity and accuracy of this historical entry.
+              </p>
+           </div>
 
-            <div class="p-6 grid grid-cols-2 gap-3">
-
-              <button @click="handleShare" class="col-span-1 flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-gray-200 transition-all group">
-                <svg class="h-5 w-5 text-gray-400 group-hover:text-carrotOrange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900">Share</span>
+           <div class="grid grid-cols-2 divide-x divide-gray-200 border-b border-gray-200 bg-white">
+              <button @click="handleShare" class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group">
+                 <svg class="h-5 w-5 text-gray-400 group-hover:text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900">Share ID</span>
               </button>
-
-              <button @click="handleReport" class="col-span-1 flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-gray-200 transition-all group">
-                 <svg class="h-5 w-5 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-8a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 4h6m-6 4h6m-6 4h6" /></svg>
-                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900">Report</span>
+              <button @click="handleReport" class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group">
+                 <svg class="h-5 w-5 text-gray-400 group-hover:text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-8a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 4h6m-6 4h6m-6 4h6" /></svg>
+                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-red-600">Report</span>
               </button>
+           </div>
 
-              <button
-                v-if="isAuthor"
-                @click="handleDelete"
-                class="col-span-2 flex items-center justify-center gap-2 p-3 rounded-xl border border-red-50 bg-red-50/50 hover:bg-red-100 transition-all group mt-2"
-              >
-                <svg class="h-4 w-4 text-red-400 group-hover:text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-red-400 group-hover:text-red-700">Delete Entry</span>
+           <div v-if="isAuthor" class="bg-red-50/30">
+              <button @click="handleDelete" class="w-full p-6 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center gap-2">
+                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                 Permanently Delete
               </button>
+           </div>
 
-            </div>
-
-          </div>
         </aside>
 
       </div>
     </div>
 
-    <div v-else class="flex h-[80vh] items-center justify-center">
+    <div v-else class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
       <div class="text-center">
-        <h2 class="text-2xl font-serif text-gray-900 mb-4">Not Found</h2>
-        <router-link to="/collections" class="rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white hover:bg-carrotOrange-500 transition-colors">Back to Archive</router-link>
+        <h2 class="text-3xl font-serif text-gray-900 mb-6">404: Not Found</h2>
+        <router-link to="/collections" class="px-8 py-4 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors">Return to Archive</router-link>
       </div>
     </div>
 

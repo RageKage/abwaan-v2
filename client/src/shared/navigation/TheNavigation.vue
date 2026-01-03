@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/features/auth/auth.store'
+import { useProfileStore } from '@/features/profile/profile.store'
 import DesktopNav from '@/shared/navigation/DesktopNav.vue'
 import MobileNav from '@/shared/navigation/MobileNav.vue'
 import SiteLogo from '@/shared/navigation/SiteLogo.vue'
@@ -13,6 +14,7 @@ import {
 
 const auth = useAuthStore()
 const router = useRouter()
+const profileStore = useProfileStore()
 
 const isMobileMenuOpen = ref(false)
 const isVisible = ref(true)
@@ -23,6 +25,15 @@ const navClasses = computed(() => ({
   'translate-y-0 opacity-100': isVisible.value,
   '-translate-y-full opacity-0 pointer-events-none': !isVisible.value,
 }))
+
+const navUser = computed(() => {
+  if (!auth.user) return null
+  return {
+    uid: auth.user.uid,
+    displayName: profileStore.profile?.displayName || auth.user.displayName || null,
+    username: profileStore.profile?.username || null,
+  }
+})
 
 const openMobileMenu = () => { isMobileMenuOpen.value = true }
 const closeMobileMenu = () => { isMobileMenuOpen.value = false }
@@ -82,33 +93,35 @@ watch(isMobileMenuOpen, (isOpen) => {
 
 <template>
   <header
-    class="fixed top-6 left-0 right-0 z-50 transition-all duration-500 ease-in-out px-4 sm:px-6 lg:px-8"
+    class="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-all duration-300 font-sans text-gray-900"
     :class="navClasses"
   >
-    <div class="mx-auto max-w-7xl">
-      <div class="relative rounded-2xl bg-white/90 backdrop-blur-xl border border-white/20 shadow-sm shadow-gray-200/40 ring-1 ring-black/5 px-4 py-3 sm:px-6">
+    <div class="mx-auto max-w-[1600px] h-20 md:h-24">
+      <div class="h-full w-full">
 
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between h-full">
 
-          <div class="lg:hidden flex items-center justify-between w-full">
+          <div class="lg:hidden flex items-center justify-between w-full px-6 border-r border-gray-200 h-full">
             <SiteLogo />
             <button
               type="button"
-              class="p-2 -mr-2 text-gray-500 hover:text-carrotOrange-600 transition-colors"
+              class="p-4 -mr-4 text-gray-900 hover:bg-gray-50 transition-colors h-full flex items-center border-l border-gray-200"
               @click="openMobileMenu"
             >
               <span class="sr-only">Open Menu</span>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
+              <div class="flex flex-col gap-1.5">
+                <span class="block w-6 h-0.5 bg-gray-900"></span>
+                <span class="block w-6 h-0.5 bg-gray-900"></span>
+                <span class="block w-6 h-0.5 bg-gray-900"></span>
+              </div>
             </button>
           </div>
 
-          <div class="hidden lg:flex w-full">
+          <div class="hidden lg:flex w-full h-full">
             <DesktopNav
               :routes="mainRoutes"
               :user-routes="userDropdownRoutes"
-              :user="auth.user"
+              :user="navUser"
               @trigger-action="handleUserAction"
             />
           </div>
@@ -122,7 +135,7 @@ watch(isMobileMenuOpen, (isOpen) => {
     :is-open="isMobileMenuOpen"
     :routes="mainRoutes"
     :user-routes="userDropdownRoutes"
-    :user="auth.user"
+    :user="navUser"
     @close="closeMobileMenu"
     @trigger-action="handleUserAction"
   />

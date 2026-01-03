@@ -6,6 +6,7 @@ import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import SearchBar from './SearchBar.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
 import BaseDropdown from '@/shared/components/BaseDropdown.vue'
+
 const submissionsStore = useSubmissionsStore()
 
 const activeTab = ref<'all' | SubmissionType>('all')
@@ -15,19 +16,19 @@ const searchTerm = ref('')
 const isLoadingMore = ref(false)
 
 const tabs = [
-  { key: 'all', label: 'All Collection' },
+  { key: 'all', label: 'All Records' },
   { key: 'Proverb', label: 'Proverbs' },
   { key: 'Poetry', label: 'Poetry' },
 ] as const
 
 const languages = [
-  { key: 'all', label: 'All' },
+  { key: 'all', label: 'All Langs' },
   { key: 'so', label: 'Somali' },
   { key: 'en', label: 'English' },
 ] as const
 
 const sortOptions = [
-  { key: 'createdAt', label: 'Latest' },
+  { key: 'createdAt', label: 'Newest' },
   { key: 'voteScore', label: 'Top Rated' },
 ] as const
 
@@ -83,208 +84,109 @@ watch(searchTerm, (newTerm) => {
 </script>
 
 <template>
-  <main
-    class="min-h-screen w-full bg-gray-50 px-4 py-12 sm:px-6 lg:px-8 font-sans pb-24 selection:bg-carrotOrange-100 selection:text-carrotOrange-900"
-  >
-    <div class="mx-auto max-w-7xl">
-      <!-- Header & Search -->
-      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10 mb-20">
-        <div class="relative">
-          <div
-            class="absolute -top-10 -left-10 w-40 h-40 bg-carrotOrange-200/20 rounded-full blur-3xl transition-colors duration-700"
-          ></div>
+  <main class="w-full font-sans text-gray-900 pt-24 pb-24">
 
-          <div class="relative space-y-4">
-            <div class="flex items-center gap-3">
-              <span class="h-px w-8 bg-carrotOrange-500"></span>
-              <span
-                key="badge"
-                class="text-xs font-bold text-carrotOrange-600 uppercase tracking-[0.25em] transition-all duration-500"
-              >
+    <div class="border-b border-gray-200">
+      <div class="max-w-[1600px] mx-auto grid lg:grid-cols-12 min-h-[300px]">
+
+        <div class="lg:col-span-7 p-8 md:p-12 lg:p-16 border-r border-gray-200 flex flex-col justify-end bg-gray-50">
+          <div class="space-y-6">
+             <span class="inline-block px-3 py-1 border border-gray-900 rounded-full text-[10px] font-bold uppercase tracking-widest w-fit">
                 Digital Library
-              </span>
-            </div>
-
-            <h1
-              class="font-serif text-6xl md:text-7xl font-medium tracking-tighter text-gray-900 transition-all duration-500"
-            >
-              The Archive.
-            </h1>
-
-            <p
-              class="text-lg md:text-xl text-gray-500 max-w-lg leading-relaxed font-light font-serif italic transition-all duration-500"
-            >
-              Explore the latest verses, wisdom, and cultural heritage shared by the community.
-            </p>
+             </span>
+             <h1 class="text-6xl md:text-8xl font-serif tracking-tighter leading-none text-gray-900">
+               The Archive
+             </h1>
+             <p class="text-xl text-gray-500 max-w-lg font-light leading-relaxed">
+               Explore the latest verses, wisdom, and cultural heritage shared by the community.
+             </p>
           </div>
         </div>
 
-        <div class="w-full lg:w-[400px]">
-          <div
-            class="bg-white p-2 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 transform transition-transform focus-within:-translate-y-1 duration-300"
-          >
-            <SearchBar
-              v-model="searchTerm"
-              placeholder="Search the collection..."
-              @search="handleSearch"
-              class="w-full"
-            />
-          </div>
+        <div class="lg:col-span-5 p-8 md:p-12 lg:p-16 flex items-end bg-white">
+           <div class="w-full">
+             <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Search Database</label>
+             <SearchBar
+                v-model="searchTerm"
+                placeholder="Type keywords..."
+                @search="handleSearch"
+                class="w-full"
+              />
+           </div>
         </div>
+
       </div>
+    </div>
 
-      <div class="sticky top-6 z-30 mb-12">
-        <div
-          class="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/40 border border-gray-200/60 p-2 flex flex-col md:flex-row items-center justify-between gap-4"
-        >
-          <div class="flex p-1 bg-gray-100/50 rounded-xl w-full md:w-auto overflow-x-auto no-scrollbar">
-            <button
+    <div class="bg-gray-50/95 backdrop-blur-md border-b border-gray-200">
+      <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between">
+
+        <div class="flex items-stretch w-full md:w-auto overflow-x-auto no-scrollbar border-b md:border-b-0 border-gray-200">
+           <button
               v-for="tab in tabs"
               :key="tab.key"
-              type="button"
-              class="relative px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 focus:outline-none whitespace-nowrap flex-1 md:flex-none"
-              :class="
-                activeTab === tab.key
-                  ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5 scale-[1.02]'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200/50'
-              "
+              class="px-8 py-5 text-xs font-bold uppercase tracking-widest transition-colors border-r border-gray-200 whitespace-nowrap hover:bg-gray-50"
+              :class="activeTab === tab.key ? 'bg-gray-900 text-white hover:bg-gray-800' : 'text-gray-500 hover:text-carrotOrange-600'"
               @click="activeTab = tab.key"
             >
               {{ tab.label }}
-            </button>
-          </div>
-
-          <div
-            class="flex items-center gap-2 w-full md:w-auto border-t md:border-t-0 border-gray-100 pt-2 md:pt-0 px-2 md:px-0"
-          >
-            <span class="text-[10px] font-bold uppercase text-gray-400 mr-2 hidden md:inline-block">Filter By:</span>
-            <BaseDropdown v-model="activeLanguage" :options="languages" label="LANG" class="flex-1 md:flex-none" />
-            <div class="w-px h-6 bg-gray-200 mx-1 hidden md:block"></div>
-            <BaseDropdown v-model="sortBy" :options="sortOptions" label="Sort" class="flex-1 md:flex-none" />
-          </div>
+           </button>
         </div>
+
+        <div class="flex items-center w-full md:w-auto divide-x divide-gray-200 border-b md:border-b-0 border-gray-200">
+           <BaseDropdown v-model="activeLanguage" :options="languages" label="LANG" class="flex-1 md:flex-none" />
+           <BaseDropdown v-model="sortBy" :options="sortOptions" label="SORT" class="flex-1 md:flex-none" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="max-w-[1600px] mx-auto min-h-[50vh]">
+
+      <div v-if="contentState === 'loading'" class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200">
+         <div v-for="i in 6" :key="i" class="h-96 p-10 animate-pulse bg-white">
+            <div class="flex justify-between mb-8">
+               <div class="h-4 w-20 bg-gray-100 rounded"></div>
+               <div class="h-4 w-12 bg-gray-100 rounded"></div>
+            </div>
+            <div class="h-8 w-3/4 bg-gray-100 rounded mb-4"></div>
+            <div class="h-4 w-full bg-gray-50 rounded mb-2"></div>
+            <div class="h-4 w-2/3 bg-gray-50 rounded"></div>
+         </div>
       </div>
 
-      <!-- Content Grid -->
-      <transition name="fade-grid" mode="out-in">
-        <div :key="contentState">
-          <div v-if="contentState === 'loading'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Loading State -->
-            <div
-              v-for="i in 6"
-              :key="i"
-              class="flex flex-col h-80 rounded-[2rem] bg-white p-8 shadow-sm border border-gray-100 overflow-hidden"
-            >
-              <div class="flex items-center gap-3 mb-6">
-                <div class="h-8 w-8 animate-pulse rounded-full bg-gray-100"></div>
-                <div class="space-y-2">
-                  <div class="h-3 w-24 animate-pulse rounded bg-gray-100"></div>
-                  <div class="h-2 w-16 animate-pulse rounded bg-gray-100"></div>
-                </div>
-              </div>
-              <div class="space-y-4 flex-1">
-                <div class="h-6 w-3/4 animate-pulse rounded bg-gray-100"></div>
-                <div class="h-4 w-full animate-pulse rounded bg-gray-50"></div>
-                <div class="h-4 w-full animate-pulse rounded bg-gray-50"></div>
-              </div>
-            </div>
+      <div v-else-if="contentState === 'empty'" class="flex flex-col items-center justify-center py-32 border-b border-gray-200">
+          <div class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-6">
+             <span class="text-2xl text-gray-400">?</span>
           </div>
+          <h3 class="text-2xl font-serif text-gray-900 mb-2">No Records Found</h3>
+          <p class="text-gray-500 mb-8 max-w-sm text-center">
+             We couldn't find any entries matching your criteria. Try adjusting your filters.
+          </p>
+          <button @click="handleResetFilters" class="px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors">
+             Clear Filters
+          </button>
+      </div>
 
-          <div
-            v-if="contentState === 'empty'"
-            class="flex flex-col items-center justify-center py-24 px-4 text-center rounded-[2.5rem] border border-gray-100 bg-white shadow-sm"
-          >
-            <!-- Empty State -->
-            <div
-              class="mb-6 flex h-20 w-20 mx-auto items-center justify-center rounded-full border-2 border-gray-200 bg-white/50 text-carrotOrange-500 shadow-sm"
-            >
-              <svg
-                v-if="searchTerm"
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                />
-              </svg>
-            </div>
-
-            <div v-if="searchTerm">
-              <h3 class="text-2xl font-serif text-gray-900 mb-2">No results found</h3>
-              <p class="text-gray-500 max-w-sm mx-auto mb-8 font-light">
-                We couldn't find any submissions matching "
-                <span class="font-medium text-gray-900">{{ searchTerm }}</span>
-                ".
-              </p>
-              <button
-                @click="handleClearSearch"
-                class="inline-flex items-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-gray-900 shadow-lg ring-1 ring-gray-100 transition-all hover:ring-carrotOrange-200 hover:text-carrotOrange-600"
-              >
-                Clear Search
-              </button>
-            </div>
-
-            <div v-else>
-              <h3 class="text-2xl font-serif text-gray-900 mb-2">The Archive is empty</h3>
-              <p class="text-gray-500 max-w-sm mx-auto mb-8 font-light">
-                We couldn't find any {{ activeTab === 'all' ? 'submissions' : activeTab }} right now.
-              </p>
-              <div class="flex gap-4 mt-6">
-                <button
-                  @click="handleResetFilters"
-                  class="inline-flex items-center rounded-xl bg-gray-100 px-6 py-3 text-sm font-bold text-gray-700 transition-all hover:bg-gray-200"
-                >
-                  Reset Filters
-                </button>
-                <router-link
-                  to="/contribute"
-                  class="inline-flex items-center rounded-xl bg-gray-900 px-6 py-3 text-sm font-bold text-white shadow-xl transition-all hover:bg-carrotOrange-500 hover:scale-105 tracking-widest uppercase duration-300"
-                >
-                  Contribute
-                </router-link>
-              </div>
-            </div>
-          </div>
-          <div v-if="contentState === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Data Grid -->
-            <SubmissionCard
-              v-for="(submission, index) in submissionsStore.items"
-              :key="submission.id"
-              :submission="submission"
-              :index="index"
-              class="h-full hover:-translate-y-2 transition-transform duration-500"
-            />
-          </div>
-        </div>
-      </transition>
+      <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white">
+         <div
+           v-for="(submission, index) in submissionsStore.items"
+           :key="submission.id"
+           class="hover:bg-gray-50 transition-colors duration-300"
+         >
+            <SubmissionCard :submission="submission" :index="index" />
+         </div>
+      </div>
 
       <LoadMore
         v-if="!searchTerm && !!submissionsStore.lastDoc"
         :has-more="true"
         :loading="isLoadingMore"
         @load-more="handleLoadMore"
-        class="mt-12"
+        class="border-b border-gray-200 py-12"
       />
 
-      <div
+           <div
         v-if="!submissionsStore.busy && submissionsStore.items.length > 0 && !submissionsStore.lastDoc && !searchTerm"
         class="mt-20 flex justify-center opacity-40"
       >
@@ -294,34 +196,13 @@ watch(searchTerm, (newTerm) => {
           <span class="h-px w-8 bg-gray-300"></span>
         </div>
       </div>
+
     </div>
+
   </main>
 </template>
 
 <style scoped>
-.fade-grid-enter-active,
-.fade-grid-leave-active {
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease;
-}
-
-.fade-grid-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.fade-grid-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

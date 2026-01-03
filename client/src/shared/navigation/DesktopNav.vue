@@ -52,34 +52,46 @@ const handleAction = (action: UserRouteAction) => {
 </script>
 
 <template>
-  <nav class="flex items-center justify-between w-full">
-    <div class="flex items-center gap-10">
-      <SiteLogo />
+  <nav class="flex items-stretch justify-between w-full h-full">
 
-      <div class="hidden lg:flex items-center gap-8">
+    <div class="flex items-stretch h-full flex-1">
+
+      <div class="flex-shrink-0 flex items-center px-8 md:px-12 border-r border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+         <SiteLogo />
+      </div>
+
+      <div class="flex items-stretch h-full">
         <router-link
-          v-for="route in routes"
+          v-for="(route, index) in routes"
           :key="route.to"
           :to="route.to"
-          class="text-xs font-bold uppercase tracking-[0.2em] text-gray-400 hover:text-carrotOrange-600 transition-colors duration-300"
-          active-class="text-carrotOrange-600"
+          class="relative group flex items-center justify-center px-10 border-r border-gray-200 h-full min-w-[140px] hover:bg-gray-50 transition-all duration-300"
+          active-class="bg-gray-50"
         >
-          {{ route.label }}
+          <span class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 group-hover:text-carrotOrange-600 transition-colors relative z-10">
+            {{ route.label }}
+          </span>
+
+          <span class="absolute top-3 right-3 text-[9px] font-mono text-gray-300 group-hover:text-carrotOrange-300 transition-colors">
+            0{{ index + 1 }}
+          </span>
+
+          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-carrotOrange-500 transform scale-x-0 group-[.router-link-active]:scale-x-100 transition-transform duration-300"></span>
         </router-link>
       </div>
     </div>
 
-    <div class="flex items-center gap-6">
+    <div class="flex items-stretch h-full">
       <template v-if="!user">
-        <div class="flex items-center gap-6">
+        <div class="flex items-stretch h-full">
           <router-link
-            class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors"
+            class="flex items-center px-8 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-gray-900 hover:bg-gray-50 border-l border-gray-200 transition-colors h-full"
             :to="{ path: '/login', query: { mode: 'login' } }"
           >
             Log In
           </router-link>
           <router-link
-            class="rounded-xl bg-gray-900 px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-carrotOrange-500 transition-colors shadow-lg hover:shadow-carrotOrange-500/20 hover:-translate-y-0.5 transform duration-300"
+            class="flex items-center px-8 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors h-full"
             :to="{ path: '/login', query: { mode: 'register' } }"
           >
             Join Archive
@@ -88,24 +100,27 @@ const handleAction = (action: UserRouteAction) => {
       </template>
 
       <template v-else>
-        <div class="relative" ref="menuRef">
+        <div class="relative flex items-stretch h-full border-l border-gray-200 min-w-[220px]" ref="menuRef">
           <button
             type="button"
-            class="group flex items-center gap-3 rounded-xl border border-gray-200 bg-white pl-1 pr-4 py-1 shadow-sm hover:shadow-md hover:border-carrotOrange-200 transition-all duration-300"
+            class="group w-full flex items-center justify-between px-8 bg-white hover:bg-gray-50 transition-colors h-full gap-4"
             @click="toggleMenu"
           >
-            <div
-              class="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-xs font-bold text-gray-600 border border-gray-100 group-hover:bg-carrotOrange-50 group-hover:text-carrotOrange-600 group-hover:border-carrotOrange-100 transition-colors"
-            >
-              {{ avatarInitial }}
-            </div>
-
-            <div class="flex flex-col items-start">
-              <span
-                class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-carrotOrange-500 transition-colors"
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-600 border border-gray-200 group-hover:border-carrotOrange-200 group-hover:text-carrotOrange-600 transition-colors"
               >
-                {{ user.displayName || 'Contributor' }}
-              </span>
+                {{ avatarInitial }}
+              </div>
+
+              <div class="flex flex-col items-start text-left">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-900">
+                  {{ user.displayName || 'Contributor' }}
+                </span>
+                <span class="text-[9px] font-mono text-gray-400 group-hover:text-carrotOrange-500 transition-colors">
+                  LOGGED IN
+                </span>
+              </div>
             </div>
 
             <svg
@@ -122,22 +137,22 @@ const handleAction = (action: UserRouteAction) => {
 
           <transition
             enter-active-class="transition duration-200 ease-out"
-            enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+            enter-from-class="transform scale-95 opacity-0 translate-y-2"
             enter-to-class="transform scale-100 opacity-100 translate-y-0"
             leave-active-class="transition duration-150 ease-in"
             leave-from-class="transform scale-100 opacity-100 translate-y-0"
-            leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+            leave-to-class="transform scale-95 opacity-0 translate-y-2"
           >
             <div
               v-if="isMenuOpen"
-              class="absolute right-0 top-full mt-3 w-60 rounded-2xl bg-white p-2 shadow-xl ring-1 ring-gray-100 z-50 origin-top-right"
+              class="absolute right-0 top-full mt-0 w-full bg-white border border-gray-200 border-t-0 shadow-xl z-50"
             >
-              <div class="flex flex-col gap-1 p-1">
+              <div class="flex flex-col divide-y divide-gray-100">
                 <button
                   v-for="route in userRoutes"
                   :key="route.action"
                   type="button"
-                  class="flex items-center w-full rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-50 hover:text-carrotOrange-600 transition-colors text-left"
+                  class="flex items-center w-full px-8 py-4 text-xs font-bold uppercase tracking-widest text-gray-500 hover:bg-gray-50 hover:text-carrotOrange-600 transition-colors text-left"
                   @click="handleAction(route.action)"
                 >
                   {{ route.label }}

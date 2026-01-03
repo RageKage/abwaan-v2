@@ -124,9 +124,7 @@ export const createSubmission = async (
   const translation =
     typeof publicInput.translation === 'string' ? publicInput.translation.trim() : ''
   const origin = (publicInput.origin ?? input.origin) as SubmissionOrigin
-  const status =
-    (publicInput.status as SubmissionStatus | undefined) ??
-    ('pending' as SubmissionStatus)
+  const status = 'published' as SubmissionStatus
   const type = (publicInput.type ?? input.type) as SubmissionType
 
   const displayName =

@@ -28,7 +28,7 @@
       >
         Abwaan
       </h3>
-      <p class="text-[10px] font-medium text-gray-400">Loading collection...</p>
+      <p class="text-[10px] font-medium text-gray-400">Loading archive...</p>
     </div>
   </div>
 </template>

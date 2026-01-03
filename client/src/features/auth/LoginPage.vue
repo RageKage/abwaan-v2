@@ -16,9 +16,7 @@ const password = ref('')
 
 const title = computed(() => (isRegister.value ? 'Member Registration' : 'Member Access'))
 const submitLabel = computed(() => (isRegister.value ? 'Create ID' : 'Enter Archive'))
-const toggleLabel = computed(() =>
-  isRegister.value ? 'Already have an ID? Sign in' : 'New to the archive? Register',
-)
+const toggleLabel = computed(() => (isRegister.value ? 'Already have an ID? Sign in' : 'New to the archive? Register'))
 
 const toggleMode = () => {
   isRegister.value = !isRegister.value
@@ -72,103 +70,115 @@ const handleGoogleLogin = async () => {
 </script>
 
 <template>
-  <main class="min-h-screen w-full bg-gray-50 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 font-sans selection:bg-carrotOrange-100 selection:text-carrotOrange-900">
+  <main class="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden font-sans text-gray-900">
 
-    <div class="w-full max-w-md">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;">
+    </div>
 
-      <div class="text-center mb-10">
-        <router-link to="/" class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-carrotOrange-50 text-carrotOrange-600 mb-6">
-           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-        </router-link>
-        <h1 class="font-serif text-3xl font-medium text-gray-900 mb-3">
-          {{ title }}
-        </h1>
-        <p class="text-sm text-gray-500 font-light">
-          {{ isRegister ? 'Join the community preserving Somali heritage.' : 'Welcome back to the digital library.' }}
-        </p>
-      </div>
+    <div class="w-full max-w-md relative z-10 p-6">
 
-      <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden relative">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-carrotOrange-400 to-transparent opacity-50"></div>
+      <div class="bg-white border border-gray-200 shadow-none">
 
-        <div class="p-8 sm:p-10">
-          <form class="space-y-6" @submit.prevent="handleSubmit">
+        <div class="p-10 border-b border-gray-200 bg-gray-50 text-center">
+           <router-link to="/" class="inline-block mb-6 group">
+              <div class="w-12 h-12 border border-gray-900 rounded-full flex items-center justify-center group-hover:bg-carrotOrange-500 group-hover:border-carrotOrange-500 group-hover:text-white transition-colors duration-300">
+                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                 </svg>
+              </div>
+           </router-link>
+           <h1 class="text-3xl font-serif text-gray-900 mb-2 tracking-tight">
+             {{ title }}
+           </h1>
+           <p class="text-xs font-mono text-gray-400 uppercase tracking-widest">
+             {{ isRegister ? 'Initialize new account' : 'Authenticate session' }}
+           </p>
+        </div>
+
+        <div class="p-10 space-y-8">
+          <form class="space-y-8" @submit.prevent="handleSubmit">
 
             <div v-if="isRegister" class="group">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">Full Name</label>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Identity</label>
               <input
                 v-model="displayName"
                 type="text"
                 autocomplete="name"
                 required
-                class="block w-full rounded-xl border border-gray-200 bg-gray-50/30 px-4 py-3 text-gray-900 placeholder:text-gray-300 focus:bg-white focus:border-carrotOrange-400 focus:ring-4 focus:ring-carrotOrange-50/50 transition-all font-medium"
+                placeholder="Full Name"
+                class="block w-full bg-transparent border-b border-gray-200 py-3 text-lg font-serif text-gray-900 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none"
               />
             </div>
 
             <div class="group">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">Email Address</label>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Credentials</label>
               <input
                 v-model="email"
                 type="email"
                 autocomplete="email"
                 required
-                class="block w-full rounded-xl border border-gray-200 bg-gray-50/30 px-4 py-3 text-gray-900 placeholder:text-gray-300 focus:bg-white focus:border-carrotOrange-400 focus:ring-4 focus:ring-carrotOrange-50/50 transition-all font-medium"
+                placeholder="Email Address"
+                class="block w-full bg-transparent border-b border-gray-200 py-3 text-lg font-serif text-gray-900 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none"
               />
             </div>
 
             <div class="group">
-              <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">Password</label>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Security Key</label>
               <input
                 v-model="password"
                 type="password"
                 :autocomplete="isRegister ? 'new-password' : 'current-password'"
                 required
-                class="block w-full rounded-xl border border-gray-200 bg-gray-50/30 px-4 py-3 text-gray-900 placeholder:text-gray-300 focus:bg-white focus:border-carrotOrange-400 focus:ring-4 focus:ring-carrotOrange-50/50 transition-all font-medium"
+                placeholder="Password"
+                class="block w-full bg-transparent border-b border-gray-200 py-3 text-lg font-serif text-gray-900 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none"
               />
             </div>
 
             <button
               type="submit"
               :disabled="authStore.busy"
-              class="w-full flex items-center justify-center rounded-xl bg-gray-900 px-6 py-4 text-xs font-bold uppercase tracking-widest text-white shadow-lg transition-all hover:bg-carrotOrange-500 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              class="w-full py-4 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait mt-4"
             >
-              <span v-if="authStore.busy" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2"></span>
+              <span v-if="authStore.busy" class="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
               {{ submitLabel }}
             </button>
           </form>
 
-          <div class="my-8 flex items-center gap-4">
-            <span class="h-px flex-1 bg-gray-100"></span>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-300">Or continue with</span>
-            <span class="h-px flex-1 bg-gray-100"></span>
+          <div class="relative flex items-center py-2">
+             <div class="flex-grow border-t border-gray-200"></div>
+             <span class="flex-shrink-0 mx-4 text-[10px] font-bold uppercase tracking-widest text-gray-300">Or</span>
+             <div class="flex-grow border-t border-gray-200"></div>
           </div>
 
           <button
             type="button"
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:border-gray-300"
+            class="w-full py-4 border border-gray-200 text-gray-900 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
             :disabled="authStore.busy"
             @click="handleGoogleLogin"
           >
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-               <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
             </svg>
-            <span class="text-xs font-bold uppercase tracking-widest">Google</span>
+            <span>Continue with Google</span>
           </button>
 
-          <p v-if="authStore.error" role="alert" class="mt-6 text-center text-xs font-bold text-red-500 bg-red-50 py-2 rounded-lg">
-            {{ authStore.error }}
+          <p v-if="authStore.error" class="text-center text-xs font-mono text-red-500 uppercase mt-4">
+             /// Error: {{ authStore.error }}
           </p>
 
-          <div class="mt-8 text-center">
-            <button
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t border-gray-200 text-center">
+           <button
               type="button"
-              class="text-xs font-bold uppercase tracking-widest text-carrotOrange-600 hover:text-carrotOrange-700 hover:underline transition-all"
+              class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 transition-colors"
               @click="toggleMode"
             >
               {{ toggleLabel }}
             </button>
-          </div>
         </div>
+
       </div>
     </div>
   </main>

@@ -10,15 +10,16 @@ defineEmits<{
 </script>
 
 <template>
-  <div v-if="hasMore" class="mt-10 flex justify-center">
+  <div v-if="hasMore" class="w-full">
     <button
       type="button"
       :disabled="loading"
-      class="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 transition-all hover:bg-gray-50 hover:text-carrotOrange-600 disabled:cursor-not-allowed disabled:opacity-70"
+      class="w-full py-8 flex items-center justify-center gap-3 bg-white text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-wait"
       @click="$emit('load-more')"
     >
-      <span v-if="loading" class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-carrotOrange-500"></span>
-      <span v-else>Load More</span>
+      <span v-if="loading" class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-carrotOrange-600"></span>
+      <span v-else>Load Next Batch</span>
+      <span v-if="!loading" class="text-lg">↓</span>
     </button>
   </div>
 </template>

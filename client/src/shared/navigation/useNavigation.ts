@@ -11,7 +11,7 @@ export type UserRoute = {
 }
 
 export const mainRoutes: NavRoute[] = [
-  { label: 'Collections', to: '/collections' },
+  { label: 'Archive', to: '/collections' },
   { label: 'Contribute', to: '/contribute' },
 ]
 
