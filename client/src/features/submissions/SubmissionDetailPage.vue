@@ -21,9 +21,7 @@ const isLoading = computed(() => submissionsStore.busy)
 const error = computed(() => submissionsStore.error)
 
 const authorName = computed(() => (submission.value ? getAuthorName(submission.value) : null))
-const authorUsername = computed(() =>
-  submission.value ? getAuthorUsername(submission.value) : null,
-)
+const username = computed(() => (submission.value ? getAuthorUsername(submission.value) : null))
 
 const isAuthor = computed(() => {
   return authStore.user && submission.value && authStore.user.uid === submission.value.uid
@@ -182,7 +180,7 @@ watch(() => route.params.id, () => { void loadSubmission() })
                        {{ authorName || 'Anonymous' }}
                     </p>
                     <p class="text-xs font-mono text-gray-400 mt-1">
-                       {{ authorUsername ? '@' + authorUsername : 'Community Member' }}
+                       {{ username ? '@' + username : 'Community Member' }}
                     </p>
                  </div>
               </router-link>
@@ -215,7 +213,7 @@ watch(() => route.params.id, () => { void loadSubmission() })
                  </button>
               </div>
               <p class="text-[10px] text-gray-400 mt-4 text-center leading-relaxed">
-                 Vote to validate the authenticity and accuracy of this historical entry.
+                 Vote to validate the authenticity and accuracy of this entry.
               </p>
            </div>
 

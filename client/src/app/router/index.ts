@@ -53,9 +53,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/features/profile/PublicProfilePage.vue'),
   },
   {
-    path: '/beta/status',
-    name: 'beta-status',
-    component: () => import('@/features/home/BetaStatusPage.vue'),
+    path: '/roadmap',
+    name: 'roadmap',
+    component: () => import('@/features/home/RoadmapPage.vue'),
   },
   {
     path: '/:pathMatch(.*)*',

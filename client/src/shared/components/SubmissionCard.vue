@@ -19,7 +19,7 @@ const props = defineProps<{
     v-motion
     :initial="{ opacity: 0 }"
     :enter="{ opacity: 1, transition: { delay: props.index ? props.index * 50 : 0 } }"
-    class="group block h-full p-10 md:p-12 flex flex-col justify-between relative"
+    class="group block h-full p-10 md:p-12 flex flex-col justify-between relative z-0"
   >
     <div class="flex items-start justify-between mb-8">
        <div class="flex flex-col gap-1">
@@ -69,7 +69,14 @@ const props = defineProps<{
           <span class="text-xs font-mono font-bold text-gray-300 group-hover:text-carrotOrange-500 transition-colors">
              {{ props.submission.voteScore }}
           </span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-300 group-hover:text-carrotOrange-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-3 w-3 text-gray-300 group-hover:text-carrotOrange-500 transition-colors transition-transform"
+            :class="{ 'rotate-180': props.submission.voteScore < 0 }"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
        </div>

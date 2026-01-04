@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'SiteFooter',
+}
+</script>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useDatabaseStatus } from '@/shared/utils/dbStatus'
@@ -21,6 +27,8 @@ const statusRingClass = computed(() => {
   if (status.value === 'offline') return 'bg-red-400'
   return 'bg-gray-300'
 })
+
+const appVersion = __APP_VERSION__
 
 const lastCheckedLabel = computed(() => {
   if (!lastChecked.value) return 'Last checked: —'
@@ -109,7 +117,17 @@ const lastCheckedLabel = computed(() => {
                 <span class="font-mono text-xs text-gray-300 group-hover:text-carrotOrange-500">003</span>
               </router-link>
             </li>
-            
+
+            <li>
+              <router-link to="/roadmap" class="flex items-baseline justify-between group">
+                <span
+                  class="text-lg font-serif text-gray-900 group-hover:translate-x-2 transition-transform duration-300"
+                >
+                  Roadmap
+                </span>
+                <span class="font-mono text-xs text-gray-300 group-hover:text-carrotOrange-500">004</span>
+              </router-link>
+            </li>
           </ul>
         </div>
 
@@ -119,7 +137,7 @@ const lastCheckedLabel = computed(() => {
           >
             02. Network
           </span>
-          <ul class="space-y-4 ">
+          <ul class="space-y-4">
             <!-- <li class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
               <a href="#" class="flex items-baseline justify-between group">
                 <span
@@ -146,10 +164,10 @@ const lastCheckedLabel = computed(() => {
                 <span class="font-mono text-[9px] uppercase border border-gray-200 px-1 rounded">Soon</span>
               </span>
             </li> -->
-                   <span class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
-                <span class="text-lg font-serif text-gray-400">Coming</span>
-                <span class="font-mono text-[9px] uppercase border border-gray-200 px-1 rounded">Soon</span>
-              </span>
+            <span class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
+              <span class="text-lg font-serif text-gray-400">Coming</span>
+              <span class="font-mono text-[9px] uppercase border border-gray-200 px-1 rounded">Soon</span>
+            </span>
           </ul>
         </div>
 
@@ -172,7 +190,7 @@ const lastCheckedLabel = computed(() => {
           <div class="mt-8">
             <label class="block font-serif text-gray-900 mb-2">Stay updated</label>
             <div class="flex border-gray-300 focus-within:border-carrotOrange-500 transition-colors">
-              <p class="text-xs font-bold uppercase tracking-widest">Moring coming</p>
+              <p class="text-xs font-bold uppercase tracking-widest">More coming</p>
             </div>
           </div>
         </div>
@@ -187,7 +205,7 @@ const lastCheckedLabel = computed(() => {
         <div class="flex gap-6 md:justify-end mt-4 md:mt-0">
           <!-- <a href="#" class="hover:text-gray-900 transition-colors">Privacy</a>
           <a href="#" class="hover:text-gray-900 transition-colors">Terms</a> -->
-          <span class="text-carrotOrange-600">V2.0.1</span>
+          <span class="text-carrotOrange-600">V{{ appVersion }}</span>
         </div>
       </div>
     </div>

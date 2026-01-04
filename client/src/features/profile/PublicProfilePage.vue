@@ -1,76 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getProfile, type UserProfile } from '@/data/firestore/profiles.repo'
-import { listSubmissionsByAuthor } from '@/data/firestore/submissions.repo'
-import type { Submission } from '@/data/models/submission'
-import type { QueryDocumentSnapshot } from 'firebase/firestore'
+import { storeToRefs } from 'pinia'
+import { usePublicProfileStore } from '@/features/profile/publicProfile.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
 const route = useRoute()
 
-const profile = ref<UserProfile | null>(null)
-const submissions = ref<Submission[]>([])
-const lastDoc = ref<QueryDocumentSnapshot | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
+const publicProfileStore = usePublicProfileStore()
+const { profile, submissions, lastDoc, loading, error, loadingMore } =
+  storeToRefs(publicProfileStore)
 
-const loadingMore = ref(false)
-
-const loadProfile = async () => {
-  const uid = route.params.uid as string
-  if (!uid) return
-
-  loading.value = true
-  error.value = null
-  profile.value = null
-  submissions.value = []
-  lastDoc.value = null
-
-  try {
-    const [fetchedProfile, { items, lastDoc: newLastDoc }] = await Promise.all([
-      getProfile(uid),
-      listSubmissionsByAuthor(uid, 12),
-    ])
-
-    if (!fetchedProfile) {
-      error.value = 'User not found'
-    } else {
-      profile.value = fetchedProfile
-      submissions.value = items
-      lastDoc.value = newLastDoc
-    }
-  } catch (err) {
-    console.error('Error loading public profile:', err)
-    error.value = 'Failed to load profile'
-  } finally {
-    loading.value = false
-  }
+const loadProfile = () => {
+  const uid = route.params.uid
+  if (typeof uid !== 'string') return
+  void publicProfileStore.loadProfile(uid)
 }
 
 const handleLoadMore = async () => {
-  const uid = route.params.uid as string
-  if (!uid || !lastDoc.value) return
-
-  loadingMore.value = true
-  try {
-    const { items, lastDoc: newLastDoc } = await listSubmissionsByAuthor(uid, 12, lastDoc.value)
-    submissions.value = [...submissions.value, ...items]
-    lastDoc.value = newLastDoc
-  } catch (err) {
-    console.error('Error loading more submissions:', err)
-  } finally {
-    loadingMore.value = false
-  }
+  await publicProfileStore.loadMore()
 }
 
 onMounted(() => {
-  void loadProfile()
+  loadProfile()
 })
 watch(
   () => route.params.uid,
   () => {
-    void loadProfile()
+    loadProfile()
   },
 )
 </script>

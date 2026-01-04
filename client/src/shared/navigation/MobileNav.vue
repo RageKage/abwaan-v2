@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import SiteLogo from '@/shared/navigation/SiteLogo.vue'
 import type { NavRoute, UserRoute, UserRouteAction } from '@/shared/navigation/useNavigation'
 import { useDatabaseStatus } from '@/shared/utils/dbStatus'
@@ -48,6 +48,8 @@ const statusLabel = computed(() => {
   if (status.value === 'offline') return 'SYSTEM: OFFLINE'
   return 'SYSTEM: CHECKING'
 })
+
+const appVersion = __APP_VERSION__
 </script>
 
 <template>
@@ -148,7 +150,7 @@ const statusLabel = computed(() => {
 
         <div class="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center text-[10px] font-mono uppercase text-gray-400">
             <span>{{ statusLabel }}</span>
-            <span>V2.0.1</span>
+            <span>V{{ appVersion }}</span>
         </div>
 
       </div>

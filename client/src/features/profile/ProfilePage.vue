@@ -16,6 +16,21 @@ const claimError = ref<string | null>(null)
 const isLoadingMore = ref(false)
 
 const isLoading = computed(() => profileStore.busy && !profileStore.profile)
+const joinedLabel = computed(() => {
+  const createdAt = profileStore.profile?.createdAt
+  if (!createdAt) return 'Joined: —'
+  const date = new Date(createdAt)
+  return `Joined: ${date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })}`
+})
+const contributionCount = computed(() => {
+  const total = profileStore.profile?.submissionCount
+  if (typeof total === 'number') return total
+  return profileStore.submissions.length
+})
 
 watch(
   () => profileStore.profile,
@@ -92,6 +107,10 @@ onMounted(() => { void profileStore.fetchMySubmissions() })
               <p class="text-xl text-gray-500 font-light leading-relaxed">
                 Manage how you are seen in the registry.
               </p>
+              <div class="mt-6 flex flex-wrap gap-6 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                <span>{{ joinedLabel }}</span>
+                <span>Total Contributions: {{ contributionCount }}</span>
+              </div>
            </div>
         </div>
       </div>
@@ -130,7 +149,7 @@ onMounted(() => { void profileStore.fetchMySubmissions() })
                 </div>
             </div>
 
-            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+            <div class="flex items-center justify-between pt-6border-gray-200">
                <p v-if="profileStore.error" class="text-xs font-mono font-bold text-red-500 uppercase">
                   /// Error: {{ profileStore.error }}
                </p>

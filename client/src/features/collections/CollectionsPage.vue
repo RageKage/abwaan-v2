@@ -48,11 +48,6 @@ const handleSearch = async () => {
   await submissionsStore.search(searchTerm.value)
 }
 
-const handleClearSearch = () => {
-  searchTerm.value = ''
-  void handleSearch()
-}
-
 const handleResetFilters = () => {
   activeLanguage.value = 'all'
   sortBy.value = 'createdAt'
@@ -118,7 +113,7 @@ watch(searchTerm, (newTerm) => {
       </div>
     </div>
 
-    <div class="bg-gray-50/95 backdrop-blur-md border-b border-gray-200">
+    <div class="bg-gray-50/95 backdrop-blur-md border-b border-gray-200 relative z-50">
       <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between">
 
         <div class="flex items-stretch w-full md:w-auto overflow-x-auto no-scrollbar border-b md:border-b-0 border-gray-200">

@@ -9,7 +9,7 @@ import {
   updateSubmission,
   deleteSubmission,
 } from '@/data/firestore/submissions.repo'
-import { voteSubmission } from '@/data/firestore/api/votes.api'
+import { voteSubmission } from '@/data/functions/votes'
 import { useAuthStore } from '../auth/auth.store'
 import { useProfileStore } from '../profile/profile.store'
 import { toastError } from '@/shared/utils/alerts'

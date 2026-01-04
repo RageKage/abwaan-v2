@@ -116,7 +116,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <main class="w-full font-sans text-gray-900 pt-24 pb-24">
+  <main class="w-full font-sans text-gray-900 pt-24">
 
     <div class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
 

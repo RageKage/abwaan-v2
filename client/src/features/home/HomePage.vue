@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full font-sans text-gray-900 pt-24 pb-24">
+  <div class="w-full font-sans text-gray-900 pt-24 ">
 
     <header class="border-b border-gray-200">
       <div class="max-w-[1600px] mx-auto grid lg:grid-cols-12 min-h-[85vh]">
@@ -77,7 +77,7 @@
             <span class="text-xs font-bold uppercase tracking-[0.3em] text-carrotOrange-600 block mb-2">Long Form</span>
             <h3 class="text-5xl md:text-6xl font-serif text-gray-900 group-hover:translate-x-2 transition-transform duration-300">Gabay</h3>
             <p class="text-gray-500 max-w-sm leading-relaxed border-l border-gray-200 pl-4 group-hover:border-gray-900 transition-colors">
-              Rhythm, metaphor, memory. The oral history preserved in verse.
+              Rhythm, metaphor, memory.
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Toaster } from 'vue-sonner'
 import TheNavigation from '@/shared/navigation/TheNavigation.vue'
-import LoadingSpinner from './assets/app-loader.vue'
+import LoadingSpinner from '@/shared/components/AppLoader.vue'
 import Footer from '@/shared/navigation/Footer.vue'
 import 'vue-sonner/style.css'
 
@@ -13,7 +13,8 @@ const hideFooter = computed(() => route.path === '/login' || hideChrome.value)
 const showNav = computed(() => route.path !== '/login' && !hideChrome.value)
 const showFooter = computed(() => !hideFooter.value)
 const isHomePage = computed(() => route.path === '/' || route.name === 'Home' || route.name === 'home')
-const isLoading = ref(false)
+
+const isLoading = ref(true)
 const serverDown = ref(typeof navigator !== 'undefined' ? !navigator.onLine : false)
 const isDismissed = ref(false)
 
@@ -23,6 +24,10 @@ const handleOffline = () => { serverDown.value = true }
 onMounted(() => {
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
+
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2000)
 })
 
 onBeforeUnmount(() => {
@@ -42,19 +47,21 @@ const PageReload = () => {
 <template>
   <div
     id="app"
-    class="bg-white min-h-screen text-gray-900 font-sans selection:bg-carrotOrange-200 selection:text-carrotOrange-900"
+    class="flex flex-col min-h-screen bg-white text-gray-900 font-sans selection:bg-carrotOrange-200 selection:text-carrotOrange-900"
   >
     <TheNavigation v-if="showNav" class="max-w-[1600px] mx-auto" />
 
-    <router-view v-slot="{ Component }">
-      <transition name="page-fade" mode="out-in" appear>
-        <component
-          :is="Component"
-          class="transition-all duration-300"
-          :class="[!isHomePage ? 'pt-24' : 'pt-0']"
-        />
-      </transition>
-    </router-view>
+    <div class="flex-grow relative min-h-screen">
+      <router-view v-slot="{ Component }">
+        <transition name="page-fade" mode="out-in" appear>
+          <component
+            :is="Component"
+            class="transition-all duration-300"
+            :class="[!isHomePage ? 'pt-24' : 'pt-0']"
+          />
+        </transition>
+      </router-view>
+    </div>
 
     <transition name="slide-up">
       <div v-if="serverDown && !isDismissed" class="fixed bottom-6 left-4 right-4 z-[200] md:left-auto md:right-6 md:w-96">
@@ -78,12 +85,13 @@ const PageReload = () => {
       </div>
     </transition>
 
-    <transition name="fade">
+    <transition name="fade" :duration="700">
       <LoadingSpinner v-if="isLoading" class="fixed inset-0 z-[9999]" />
     </transition>
+
     <Toaster position="top-center" richColors />
 
-    <Footer v-if="showFooter"></Footer>
+    <Footer v-if="showFooter" class="mt-auto"></Footer>
   </div>
 </template>
 
@@ -94,6 +102,6 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 .page-fade-leave-to { opacity: 0; transform: translateY(-10px); }
 .slide-up-enter-active, .slide-up-leave-active { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

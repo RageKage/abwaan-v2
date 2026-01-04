@@ -259,13 +259,13 @@ export const getSubmissionWithUserVote = async (
 }
 
 export const listSubmissionsByAuthor = async (
-  authorUid: string,
+  uid: string,
   limit: number = 12,
   lastDoc: QueryDocumentSnapshot | null = null,
   status: SubmissionStatusFilter = 'published',
 ): Promise<{ items: Submission[]; lastDoc: QueryDocumentSnapshot | null }> => {
   const constraints: QueryConstraint[] = [
-    where('uid', '==', authorUid),
+    where('uid', '==', uid),
     orderBy('createdAt', 'desc'),
     limitResults(limit),
   ]
