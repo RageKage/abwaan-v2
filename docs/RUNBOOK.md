@@ -4,7 +4,7 @@
 - Node.js 20.x (functions runtime is Node 20)
 - Firebase CLI: `npm install -g firebase-tools`
 - Firebase login: `firebase login`
-- Select project: `firebase use project-abwaan-dev`
+- Select project: `firebase use project-abwaan-dev-V2`
 
 ## Local Development
 
@@ -18,9 +18,9 @@ npm --prefix functions install
 Set your local env in `client/.env`:
 ```
 VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=project-abwaan-dev.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=project-abwaan-dev
-VITE_FIREBASE_STORAGE_BUCKET=project-abwaan-dev.firebasestorage.app
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
 VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 VITE_RECAPTCHA_SITE_KEY=...
@@ -61,12 +61,14 @@ npm --prefix client run build
 firebase deploy --only firestore:rules,firestore:indexes
 npm --prefix functions run build
 firebase deploy --only functions
-firebase hosting:channel:deploy preview --project project-abwaan-dev
+firebase hosting:channel:deploy preview --project project-abwaan-dev-V2
+
 ```
 
 ### Delete preview channel
 ```bash
-firebase hosting:channel:delete preview --project project-abwaan-dev
+firebase hosting:channel:delete preview --project project-abwaan-dev-V2
+
 ```
 
 ## Version Bump

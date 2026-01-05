@@ -56,7 +56,7 @@ const handleAction = (action: UserRouteAction) => {
 
     <div class="flex items-stretch h-full flex-1">
 
-      <div class="flex-shrink-0 flex items-center px-8 md:px-12 border-r border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+      <div class="flex-shrink-0 flex items-center border-r border-gray-200 bg-white hover:bg-gray-50 transition-colors">
          <SiteLogo />
       </div>
 

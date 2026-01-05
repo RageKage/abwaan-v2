@@ -116,7 +116,8 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <main class="w-full font-sans text-gray-900 pt-24">
+  <main     class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24   font-sans text-gray-900 transition-all duration-300"
+>
 
     <div class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
 

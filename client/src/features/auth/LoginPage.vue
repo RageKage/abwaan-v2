@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { useProfileStore } from '@/features/profile/profile.store'
@@ -23,14 +23,18 @@ const toggleMode = () => {
   authStore.clearError()
 }
 
-onMounted(() => {
-  const mode = route.query.mode
-  if (mode === 'register') {
-    isRegister.value = true
-  } else if (mode === 'login') {
-    isRegister.value = false
-  }
-})
+watch(
+  () => route.query.mode,
+  (mode) => {
+    const value = typeof mode === 'string' ? mode : undefined
+    if (value === 'register') {
+      isRegister.value = true
+    } else if (value === 'login') {
+      isRegister.value = false
+    }
+  },
+  { immediate: true },
+)
 
 const handleSubmit = async () => {
   try {

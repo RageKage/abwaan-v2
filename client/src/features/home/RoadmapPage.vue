@@ -38,22 +38,22 @@ const phases = [
     label: '01. The Foundation',
     status: 'Operational',
     color: 'bg-gray-900',
-    description: 'The digital bedrock. These systems are code-complete, connected to Firebase, and live.',
+    description: 'The digital bedrock. The Swiss Grid design system is active, and core archival features.',
     items: [
       {
         id: 'f-1',
         title: 'Core Archive',
-        desc: 'A fully functional, Firestore-backed library. Users can create, list, paginate, and view submissions in real-time.'
+        desc: 'A fully functional library. Users can create, list, paginate, and view submissions in real-time.'
       },
       {
         id: 'f-2',
         title: 'Identity System',
-        desc: 'Secure authentication via Email & Google, complete with profile management and unique username claiming.'
+        desc: 'Secure authentication via Email & Google, complete with public profiles and unique username claiming.'
       },
       {
         id: 'f-3',
         title: 'Search & Discovery',
-        desc: 'Robust Firestore-backed search with deep filtering (type, language, sort) and a fully wired community voting system.'
+        desc: 'Robust search with deep filtering (type, language, sort) and a fully wired community voting system.'
       }
     ]
   },
@@ -62,22 +62,22 @@ const phases = [
     label: '02. Construction',
     status: 'In Progress',
     color: 'bg-carrotOrange-500 animate-pulse',
-    description: 'Safety and Depth. We are currently bridging the logic gaps between our UI and the backend.',
+    description: 'Safety and Depth. We are building the moderation gates and filling the archive.',
     items: [
       {
         id: 'p-1',
-        title: 'Safety & Reporting',
-        desc: 'The reporting UI is in place. We are now engineering the backend logic to handle report intakes and flag content.'
+        title: 'Moderation',
+        desc: 'A reactive safety system. All submissions are published immediately, but community reports will trigger a "pending" status for admin review.'
       },
       {
         id: 'p-2',
-        title: 'Thematic Architecture',
-        desc: 'Designing the data model to support emotional tagging (Romance, War, Grief) beyond the current simple genre tags.'
+        title: 'Author Control',
+        desc: 'Building the edit workflows to allow contributors to refine their submissions and manage their own data.'
       },
       {
         id: 'p-3',
-        title: 'Admin Sanctuary',
-        desc: 'Building the internal dashboards required to review, hide, or approve submissions based on community reports.'
+        title: 'Content Pipeline',
+        desc: 'Ingesting our backlog of 300+ proverbs and 100+ raw poems to transform them into searchable entries.'
       }
     ]
   },
@@ -90,18 +90,18 @@ const phases = [
     items: [
       {
         id: 'fut-1',
-        title: 'Universal Expansion',
-        desc: 'Refactoring the current hardcoded `so`/`en` language model to support oral traditions from any culture.'
-      },
-      {
-        id: 'fut-2',
         title: 'Audio Experience',
         desc: 'Native audio player integration to allow for the playback of oral recitations.'
       },
       {
-        id: 'fut-3',
+        id: 'fut-2',
         title: 'Personal Collections',
         desc: 'Tools for users to curate, save, and share their own personal anthologies of wisdom.'
+      },
+       {
+        id: 'fut-3',
+        title: 'Deep Discovery',
+        desc: 'Thematic tagging and visualizations to connect disparate entries. Contributors will categorize themes (e.g., Love, War, Grief) directly on the submission page.'
       }
     ]
   }
