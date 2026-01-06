@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import { useAuthStore } from '@/features/auth/auth.store'
+import { useProfileStore } from '@/features/profile/profile.store'
+import { createReport } from '@/data/firestore/reports.repo'
+import type { ReportReason } from '@/data/models/report'
 import {
   getAuthorName,
   getAuthorUsername,
@@ -14,6 +17,7 @@ const route = useRoute()
 const router = useRouter()
 const submissionsStore = useSubmissionsStore()
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 
 const submission = computed(() => submissionsStore.selected)
 const userVote = computed(() => submissionsStore.userVote)
@@ -28,6 +32,19 @@ const isAuthor = computed(() => {
 })
 
 const isGuest = computed(() => !authStore.user)
+const isAdmin = computed(() => profileStore.profile?.isAdmin === true)
+
+const showReportModal = ref(false)
+const reportReason = ref<ReportReason>('spam')
+const reportDetails = ref('')
+const reportBusy = ref(false)
+const reportReasons: { value: ReportReason; label: string }[] = [
+  { value: 'spam', label: 'Spam or promotion' },
+  { value: 'abuse', label: 'Abusive or hateful content' },
+  { value: 'plagiarism', label: 'Plagiarism or stolen work' },
+  { value: 'inaccurate', label: 'Inaccurate or misleading' },
+  { value: 'other', label: 'Other' },
+]
 
 const handleVote = (intendedValue: 1 | -1) => {
   if (isGuest.value) {
@@ -64,8 +81,56 @@ const handleShare = () => {
   toastSuccess('Link copied to clipboard')
 }
 
-const handleReport = () => {
-  toastSuccess('Thank you for your report. Admins will review this entry.')
+const openReportModal = () => {
+  if (isGuest.value) {
+    router.push('/login')
+    return
+  }
+  reportReason.value = 'spam'
+  reportDetails.value = ''
+  showReportModal.value = true
+}
+
+const closeReportModal = () => {
+  showReportModal.value = false
+}
+
+const submitReport = async () => {
+  if (!submission.value || !authStore.user) return
+  reportBusy.value = true
+  try {
+    await profileStore.waitForProfile()
+    await createReport({
+      submission: submission.value,
+      reason: reportReason.value,
+      details: reportDetails.value,
+      reporterUid: authStore.user.uid,
+      reporterUsername: profileStore.profile?.username ?? null,
+    })
+    toastSuccess('Report submitted. Thank you for helping protect the archive.')
+    closeReportModal()
+  } catch {
+    toastError('Failed to submit report.')
+  } finally {
+    reportBusy.value = false
+  }
+}
+
+const handleModeration = async (nextStatus: 'published' | 'hidden') => {
+  if (!submission.value) return
+  const actionLabel = nextStatus === 'hidden' ? 'Hide Submission?' : 'Restore Submission?'
+  const actionHint =
+    nextStatus === 'hidden'
+      ? 'This entry will be removed from public listings.'
+      : 'This entry will be visible in public listings again.'
+  const confirmed = await confirmAction(actionLabel, actionHint)
+  if (!confirmed) return
+  try {
+    await submissionsStore.setStatus(submission.value.id, nextStatus)
+    toastSuccess(nextStatus === 'hidden' ? 'Submission hidden' : 'Submission restored')
+  } catch {
+    toastError('Failed to update submission status')
+  }
 }
 
 onMounted(() => {
@@ -267,7 +332,7 @@ watch(
               </span>
             </button>
             <button
-              @click="handleReport"
+              @click="openReportModal"
               class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group"
             >
               <svg
@@ -287,6 +352,27 @@ watch(
                 Report
               </span>
             </button>
+          </div>
+
+          <div v-if="isAdmin" class="border-b border-gray-200 bg-white">
+            <div class="flex items-center justify-between px-6 pt-6 text-[10px] font-bold uppercase tracking-widest">
+              <span class="text-gray-400">Moderation</span>
+              <span class="text-gray-500">Status: {{ submission.status }}</span>
+            </div>
+            <div class="p-6">
+              <button
+                type="button"
+                class="w-full py-4 text-xs font-bold uppercase tracking-widest transition-colors"
+                :class="
+                  submission.status === 'hidden'
+                    ? 'bg-gray-900 text-white hover:bg-carrotOrange-500'
+                    : 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white'
+                "
+                @click="handleModeration(submission.status === 'hidden' ? 'published' : 'hidden')"
+              >
+                {{ submission.status === 'hidden' ? 'Restore Submission' : 'Hide Submission' }}
+              </button>
+            </div>
           </div>
 
           <div v-if="isAuthor" class="bg-red-50/30">
@@ -319,6 +405,63 @@ watch(
         >
           Return to Archive
         </router-link>
+      </div>
+    </div>
+
+    <div
+      v-if="showReportModal"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6"
+      @click.self="closeReportModal"
+    >
+      <div class="w-full max-w-lg bg-white border border-gray-200 shadow-xl">
+        <div class="border-b border-gray-200 bg-gray-50 p-6">
+          <h3 class="text-2xl font-serif text-gray-900">Report Entry</h3>
+          <p class="text-sm text-gray-500 mt-2">Help us keep the archive accurate and respectful.</p>
+        </div>
+
+        <div class="p-6 space-y-6">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Reason</label>
+            <select
+              v-model="reportReason"
+              class="w-full border border-gray-200 bg-white px-3 py-2 text-sm focus:border-carrotOrange-500 focus:outline-none"
+            >
+              <option v-for="reason in reportReasons" :key="reason.value" :value="reason.value">
+                {{ reason.label }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              Additional Notes (Optional)
+            </label>
+            <textarea
+              v-model="reportDetails"
+              rows="4"
+              class="w-full border border-gray-200 bg-white px-3 py-2 text-sm focus:border-carrotOrange-500 focus:outline-none"
+              placeholder="Share any context that helps the review."
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              class="flex-1 px-4 py-3 text-xs font-bold uppercase tracking-widest border border-gray-200 text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-colors"
+              @click="closeReportModal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="flex-1 px-4 py-3 text-xs font-bold uppercase tracking-widest bg-gray-900 text-white hover:bg-carrotOrange-500 transition-colors disabled:opacity-60"
+              :disabled="reportBusy"
+              @click="submitReport"
+            >
+              {{ reportBusy ? 'Submitting...' : 'Submit Report' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </main>

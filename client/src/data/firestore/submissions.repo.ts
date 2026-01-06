@@ -88,7 +88,10 @@ const normalizeSubmission = (id: string, data: Partial<Submission>): Submission 
     type: data.type ?? 'Proverb',
     language: data.language ?? 'so',
     origin: data.origin ?? 'unknown',
-    status: data.status ?? 'pending',
+    status: data.status ?? 'published',
+    statusChangedAt: data.statusChangedAt ?? null,
+    statusChangedBy: data.statusChangedBy ?? null,
+    statusReason: data.statusReason ?? null,
     title: data.title ?? null,
     text: data.text ?? '',
     meaning: data.meaning ?? '',
@@ -221,6 +224,20 @@ export const updateSubmission = async (id: string, patch: Partial<Submission>): 
   await updateDoc(submissionRef, {
     ...publicPatch,
     updatedAt: Date.now(),
+  })
+}
+
+export const updateSubmissionStatus = async (
+  id: string,
+  status: SubmissionStatus,
+  options: { actorUid?: string | null; reason?: string | null } = {},
+): Promise<void> => {
+  const submissionRef = doc(db, 'submissions', id)
+  await updateDoc(submissionRef, {
+    status,
+    statusChangedAt: Date.now(),
+    statusChangedBy: options.actorUid ?? null,
+    statusReason: options.reason ?? null,
   })
 }
 

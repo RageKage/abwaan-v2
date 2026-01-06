@@ -9,6 +9,7 @@ export interface UserProfile {
   createdAt: number
   lastLoginAt: number | null
   submissionCount: number
+  isAdmin?: boolean
 }
 
 export const getProfile = async (uid: string): Promise<UserProfile | null> => {

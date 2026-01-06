@@ -16,7 +16,7 @@ This roadmap consolidates the existing plans into one list with clear priorities
 - Improve empty states and action feedback
 
 ## Later (Expansion)
-- Thematic tags and deeper metadata
+- Thematic tags and deeper metadata (user-submitted tags later)
 - Audio recitations and media support
 - Collections and favorites
 - Comments and discussion threads

@@ -3,7 +3,7 @@ export type NavRoute = {
   to: string
 }
 
-export type UserRouteAction = 'profile' | 'logout'
+export type UserRouteAction = 'profile' | 'admin' | 'logout'
 
 export type UserRoute = {
   label: string
@@ -15,7 +15,11 @@ export const mainRoutes: NavRoute[] = [
   { label: 'Contribute', to: '/contribute' },
 ]
 
-export const userDropdownRoutes: UserRoute[] = [
-  { label: 'Profile', action: 'profile' },
-  { label: 'Logout', action: 'logout' },
-]
+export const getUserDropdownRoutes = (isAdmin: boolean): UserRoute[] => {
+  const routes: UserRoute[] = [{ label: 'Profile', action: 'profile' }]
+  if (isAdmin) {
+    routes.unshift({ label: 'Admin', action: 'admin' })
+  }
+  routes.push({ label: 'Logout', action: 'logout' })
+  return routes
+}

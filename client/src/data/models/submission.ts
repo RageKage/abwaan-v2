@@ -18,6 +18,9 @@ export interface Submission {
   language: LanguageCode
   origin: SubmissionOrigin
   status: SubmissionStatus
+  statusChangedAt?: number | null
+  statusChangedBy?: string | null
+  statusReason?: string | null
   title: string | null
   text: string
   meaning: string

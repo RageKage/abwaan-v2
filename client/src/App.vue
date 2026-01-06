@@ -2,6 +2,8 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Toaster } from 'vue-sonner'
+import Lenis from 'lenis' //
+import 'lenis/dist/lenis.css' //
 import TheNavigation from '@/shared/navigation/TheNavigation.vue'
 import LoadingSpinner from '@/shared/components/AppLoader.vue'
 import Footer from '@/shared/navigation/Footer.vue'
@@ -17,6 +19,7 @@ const isHomePage = computed(() => route.path === '/' || route.name === 'Home' ||
 const isLoading = ref(true)
 const serverDown = ref(typeof navigator !== 'undefined' ? !navigator.onLine : false)
 const isDismissed = ref(false)
+let lenis: Lenis | null = null
 
 const handleOnline = () => {
   serverDown.value = false
@@ -26,6 +29,11 @@ const handleOffline = () => {
 }
 
 onMounted(() => {
+  // Initialize Lenis Smooth Scroll
+  lenis = new Lenis({
+    autoRaf: true, // Automatically handles the requestAnimationFrame loop
+  })
+
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
 
@@ -35,6 +43,12 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  // Clean up Lenis
+  if (lenis) {
+    lenis.destroy()
+    lenis = null
+  }
+
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
 })
@@ -118,6 +132,25 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* LENIS SMOOTH SCROLL CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* TRANSITIONS */
 .page-fade-enter-active,
 .page-fade-leave-active {
   transition:

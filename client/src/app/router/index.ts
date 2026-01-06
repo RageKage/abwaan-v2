@@ -48,6 +48,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/features/admin/AdminPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
     path: '/p/:uid',
     name: 'public-profile',
     component: () => import('@/features/profile/PublicProfilePage.vue'),
@@ -98,6 +104,10 @@ router.beforeEach(async (to) => {
     if (!profileStore.profile || profileStore.profile.username === null) {
       return { path: '/onboarding/username' }
     }
+  }
+
+  if (to.meta.requiresAdmin && !profileStore.profile?.isAdmin) {
+    return { path: '/' }
   }
 
   return true

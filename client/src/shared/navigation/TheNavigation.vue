@@ -6,7 +6,7 @@ import { useProfileStore } from '@/features/profile/profile.store'
 import DesktopNav from '@/shared/navigation/DesktopNav.vue'
 import MobileNav from '@/shared/navigation/MobileNav.vue'
 import SiteLogo from '@/shared/navigation/SiteLogo.vue'
-import { mainRoutes, userDropdownRoutes, type UserRouteAction } from '@/shared/navigation/useNavigation'
+import { getUserDropdownRoutes, mainRoutes, type UserRouteAction } from '@/shared/navigation/useNavigation'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -30,6 +30,8 @@ const navUser = computed(() => {
     username: profileStore.profile?.username || null,
   }
 })
+const isAdmin = computed(() => profileStore.profile?.isAdmin === true)
+const userRoutes = computed(() => getUserDropdownRoutes(isAdmin.value))
 
 const openMobileMenu = () => {
   isMobileMenuOpen.value = true
@@ -47,6 +49,10 @@ const handleUserAction = async (action: UserRouteAction) => {
   }
   if (action === 'profile') {
     await router.push('/profile')
+    return
+  }
+  if (action === 'admin') {
+    await router.push('/admin')
   }
 }
 
@@ -118,7 +124,7 @@ watch(isMobileMenuOpen, (isOpen) => {
           <div class="hidden md:flex w-full h-full">
             <DesktopNav
               :routes="mainRoutes"
-              :user-routes="userDropdownRoutes"
+              :user-routes="userRoutes"
               :user="navUser"
               @trigger-action="handleUserAction"
             />
@@ -131,7 +137,7 @@ watch(isMobileMenuOpen, (isOpen) => {
   <MobileNav
     :is-open="isMobileMenuOpen"
     :routes="mainRoutes"
-    :user-routes="userDropdownRoutes"
+    :user-routes="userRoutes"
     :user="navUser"
     @close="closeMobileMenu"
     @trigger-action="handleUserAction"

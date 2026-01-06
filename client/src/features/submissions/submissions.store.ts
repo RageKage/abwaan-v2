@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { NewSubmissionInput, Submission, SubmissionType } from '@/data/models/submission'
+import type { NewSubmissionInput, Submission, SubmissionType, SubmissionStatus } from '@/data/models/submission'
 import {
   createSubmission,
   getSubmissionWithUserVote,
   listSubmissions,
   searchSubmissions,
   updateSubmission,
+  updateSubmissionStatus,
   deleteSubmission,
 } from '@/data/firestore/submissions.repo'
 import { voteSubmission } from '@/data/functions/votes'
@@ -33,6 +34,7 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     loadMore = false,
     sortBy: 'createdAt' | 'voteScore' = 'createdAt',
     language?: string,
+    status: SubmissionStatus | 'all' = 'published',
   ) => {
     if (!loadMore) {
       busy.value = true
@@ -45,6 +47,7 @@ export const useSubmissionsStore = defineStore('submissions', () => {
       const { items: newItems, lastDoc: newLastDoc } = await listSubmissions({
         type,
         language,
+        status,
         sortBy,
         limit: 12,
         lastDoc: loadMore ? lastDoc.value : null,
@@ -150,6 +153,35 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     }
   }
 
+  const setStatus = async (id: string, status: Submission['status'], reason?: string) => {
+    const authStore = useAuthStore()
+    if (!authStore.user) {
+      throw new Error('Please log in again.')
+    }
+
+    busy.value = true
+    error.value = null
+    const timestamp = Date.now()
+    try {
+      await updateSubmissionStatus(id, status, { actorUid: authStore.user.uid, reason })
+      const patch = {
+        status,
+        statusChangedAt: timestamp,
+        statusChangedBy: authStore.user.uid,
+        statusReason: reason ?? null,
+      }
+      if (selected.value?.id === id) {
+        selected.value = { ...selected.value, ...patch }
+      }
+      items.value = items.value.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    } catch (err) {
+      setError(err, 'Failed to update submission status')
+      throw err
+    } finally {
+      busy.value = false
+    }
+  }
+
   const vote = async (submissionId: string, intendedValue: 1 | -1) => {
     // 1. Check Auth
     const authStore = useAuthStore()
@@ -238,6 +270,7 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     loadById,
     create,
     update,
+    setStatus,
     vote,
     delete: _delete,
   }

@@ -49,6 +49,7 @@ export const onAuthUserCreate = auth.user().onCreate(async (user) => {
         createdAt: now,
         lastLoginAt: now,
         submissionCount: 0,
+        isAdmin: false,
       },
       {merge: true}
     ),

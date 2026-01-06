@@ -18,6 +18,12 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/profiles/$(uid));
     }
 
+    function isAdmin() {
+      return signedIn()
+        && profileExists(request.auth.uid)
+        && profileDoc(request.auth.uid).data.isAdmin == true;
+    }
+
     function submissionDisplayNameAllowed(uid) {
       return (profileExists(uid)
         && request.resource.data.displayName == profileDoc(uid).data.displayName)
@@ -34,10 +40,12 @@ service cloud.firestore {
     match /profiles/{uid} {
       allow read: if true;
       allow create: if isOwner(uid)
-        && (!('username' in request.resource.data) || request.resource.data.username == null);
+        && (!('username' in request.resource.data) || request.resource.data.username == null)
+        && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false);
       // Username is claimed via Cloud Function (admin) and is locked here.
       allow update: if isOwner(uid)
-        && request.resource.data.username == resource.data.username;
+        && request.resource.data.username == resource.data.username
+        && request.resource.data.isAdmin == resource.data.isAdmin;
       allow delete: if false;
     }
 
@@ -55,22 +63,38 @@ service cloud.firestore {
 
     // ---------- SUBMISSIONS ----------
     match /submissions/{id} {
-      allow read: if true;
+      allow read: if resource.data.status == 'published'
+        || !('status' in resource.data)
+        || isAdmin()
+        || isOwner(resource.data.uid);
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && profileExists(request.auth.uid)
         && submissionUsernameAllowed(request.auth.uid)
-        && submissionDisplayNameAllowed(request.auth.uid);
-      allow update: if signedIn()
+        && submissionDisplayNameAllowed(request.auth.uid)
+        && (!('status' in request.resource.data) || request.resource.data.status == 'published');
+      allow update: if (signedIn()
         && resource.data.uid == request.auth.uid
         && request.resource.data.uid == resource.data.uid
         && request.resource.data.username == resource.data.username
-        && request.resource.data.displayName == resource.data.displayName;
-      allow delete: if isOwner(resource.data.uid);
+        && request.resource.data.displayName == resource.data.displayName
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.statusChangedAt == resource.data.statusChangedAt
+        && request.resource.data.statusChangedBy == resource.data.statusChangedBy
+        && request.resource.data.statusReason == resource.data.statusReason)
+        || isAdmin();
+      allow delete: if isOwner(resource.data.uid) || isAdmin();
 
       match /votes/{uid} {
         allow read: if signedIn() && request.auth.uid == uid;
       }
+    }
+
+    // ---------- REPORTS ----------
+    match /reports/{id} {
+      allow create: if signedIn()
+        && request.resource.data.reporterUid == request.auth.uid;
+      allow read, update, delete: if isAdmin();
     }
 
     // ---------- DEFAULT DENY ----------
