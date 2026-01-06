@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { useProfileStore } from '@/features/profile/profile.store'
+import { useFavoritesStore } from '@/features/favorites/favorites.store'
 import { createReport } from '@/data/firestore/reports.repo'
 import type { ReportReason } from '@/data/models/report'
 import type { LanguageCode, Submission, SubmissionOrigin, SubmissionType } from '@/data/models/submission'
@@ -24,6 +25,7 @@ const router = useRouter()
 const submissionsStore = useSubmissionsStore()
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
+const favoritesStore = useFavoritesStore()
 
 const submission = computed(() => submissionsStore.selected)
 const userVote = computed(() => submissionsStore.userVote)
@@ -39,6 +41,7 @@ const isAuthor = computed(() => {
 
 const isGuest = computed(() => !authStore.user)
 const isAdmin = computed(() => profileStore.profile?.isAdmin === true)
+const isFavorited = computed(() => (submission.value ? favoritesStore.isFavorited(submission.value.id) : false))
 
 const showReportModal = ref(false)
 const reportReason = ref<ReportReason>('spam')
@@ -197,6 +200,9 @@ const loadSubmission = async () => {
     isEditing.value = false
     showEditErrors.value = false
     await submissionsStore.loadById(id)
+    if (authStore.user) {
+      await favoritesStore.ensureFavoriteStatus(id)
+    }
   }
 }
 
@@ -216,6 +222,20 @@ const handleDelete = async () => {
 const handleShare = () => {
   navigator.clipboard.writeText(window.location.href)
   toastSuccess('Link copied to clipboard')
+}
+
+const handleToggleFavorite = async () => {
+  if (!submission.value) return
+  if (isGuest.value) {
+    router.push('/login')
+    return
+  }
+  try {
+    await favoritesStore.toggleFavorite(submission.value)
+    toastSuccess(isFavorited.value ? 'Saved to favorites' : 'Removed from favorites')
+  } catch {
+    toastError('Failed to update favorites')
+  }
 }
 
 const openReportModal = () => {
@@ -321,9 +341,7 @@ watch(
 </script>
 
 <template>
-  <main
-    class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24 font-sans text-gray-900 transition-all duration-300"
-  >
+  <main class="page-shell app-surface dot-pattern">
     <div v-if="isLoading" class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
       <div class="flex flex-col items-center gap-6">
         <div class="h-12 w-12 animate-spin rounded-full border-2 border-gray-200 border-t-carrotOrange-500"></div>
@@ -716,7 +734,7 @@ watch(
             </p>
           </div>
 
-          <div class="grid grid-cols-2 divide-x divide-gray-200 border-b border-gray-200 bg-white">
+          <div class="grid grid-cols-3 divide-x divide-gray-200 border-b border-gray-200 bg-white">
             <button
               @click="handleShare"
               class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group"
@@ -736,6 +754,32 @@ watch(
               </svg>
               <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-gray-900">
                 Share ID
+              </span>
+            </button>
+            <button
+              @click="handleToggleFavorite"
+              :disabled="favoritesStore.busy"
+              class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group disabled:opacity-60"
+            >
+              <svg
+                class="h-5 w-5"
+                :class="isFavorited ? 'text-carrotOrange-600' : 'text-gray-400 group-hover:text-gray-900'"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"
+                />
+              </svg>
+              <span
+                class="text-[10px] font-bold uppercase tracking-widest"
+                :class="isFavorited ? 'text-carrotOrange-600' : 'text-gray-400 group-hover:text-gray-900'"
+              >
+                {{ isFavorited ? 'Saved' : 'Save' }}
               </span>
             </button>
             <button

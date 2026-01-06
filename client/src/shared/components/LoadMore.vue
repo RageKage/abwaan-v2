@@ -2,6 +2,8 @@
 defineProps<{
   hasMore: boolean
   loading: boolean
+  showEnd?: boolean
+  endLabel?: string
 }>()
 
 defineEmits<{
@@ -10,8 +12,9 @@ defineEmits<{
 </script>
 
 <template>
-  <div v-if="hasMore" class="w-full">
+  <div class="w-full">
     <button
+      v-if="hasMore"
       type="button"
       :disabled="loading"
       class="w-full py-[32px] flex items-center justify-center gap-3 bg-white text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-wait"
@@ -24,5 +27,12 @@ defineEmits<{
       <span v-else>Load Next Batch</span>
       <span v-if="!loading" class="text-lg">↓</span>
     </button>
+    <div v-else-if="showEnd && !loading" class="py-[32px] flex justify-center opacity-40">
+      <div class="flex items-center gap-4 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
+        <span class="h-px w-8 bg-gray-300"></span>
+        <span>{{ endLabel || 'End of Archive' }}</span>
+        <span class="h-px w-8 bg-gray-300"></span>
+      </div>
+    </div>
   </div>
 </template>

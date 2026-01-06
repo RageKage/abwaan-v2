@@ -2,10 +2,13 @@
 import { computed, ref, watch, onMounted } from 'vue'
 import { claimUsername } from '@/data/functions/usernames'
 import { useProfileStore } from '@/features/profile/profile.store'
+import { useFavoritesStore } from '@/features/favorites/favorites.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
 import { toastError, toastSuccess } from '@/shared/utils/alerts'
 const profileStore = useProfileStore()
+const favoritesStore = useFavoritesStore()
 
 const displayName = ref('')
 const bio = ref('')
@@ -14,6 +17,7 @@ const usernameInput = ref('')
 const claimBusy = ref(false)
 const claimError = ref<string | null>(null)
 const isLoadingMore = ref(false)
+const isFavoritesLoadingMore = ref(false)
 
 const isLoading = computed(() => profileStore.busy && !profileStore.profile)
 const joinedLabel = computed(() => {
@@ -80,15 +84,23 @@ const handleLoadMore = async () => {
   }
 }
 
+const handleLoadMoreFavorites = async () => {
+  isFavoritesLoadingMore.value = true
+  try {
+    await favoritesStore.loadFavorites(true)
+  } finally {
+    isFavoritesLoadingMore.value = false
+  }
+}
+
 onMounted(() => {
   void profileStore.fetchMySubmissions()
+  void favoritesStore.loadFavorites()
 })
 </script>
 
 <template>
-  <main
-    class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24 font-sans text-gray-900 transition-all duration-300"
-  >
+  <main class="page-shell app-surface dot-pattern">
     <div v-if="isLoading" class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
       <div class="flex flex-col items-center gap-6">
         <div class="h-12 w-12 animate-spin rounded-full border-2 border-gray-200 border-t-carrotOrange-500"></div>
@@ -249,39 +261,63 @@ onMounted(() => {
         </div>
 
         <div class="bg-white">
-          <LoadMore :has-more="!!profileStore.lastDoc" :loading="isLoadingMore" @load-more="handleLoadMore" />
-
-          <div v-if="!profileStore.busy && !profileStore.lastDoc" class="py-[32px] flex justify-center opacity-40">
-            <div class="flex items-center gap-4 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
-              <span class="h-px w-8 bg-gray-300"></span>
-              <span>End of Archive</span>
-              <span class="h-px w-8 bg-gray-300"></span>
-            </div>
-          </div>
+          <LoadMore
+            :has-more="!!profileStore.lastDoc"
+            :loading="isLoadingMore"
+            :show-end="!profileStore.busy && profileStore.submissions.length > 0"
+            @load-more="handleLoadMore"
+          />
         </div>
       </div>
 
-      <div v-else class="py-32 flex flex-col items-center justify-center text-center border-b border-gray-200 bg-white">
-        <div class="mb-6 opacity-20 text-gray-300">
-          <svg class="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-        </div>
-        <h3 class="text-2xl font-serif text-gray-900 mb-2">Archive Empty</h3>
-        <p class="text-gray-500 font-light text-sm tracking-wide max-w-xs mx-auto mb-8">
-          You haven't shared any wisdom or poetry yet.
-        </p>
-        <router-link
-          to="/contribute"
-          class="px-8 py-4 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors"
+      <div v-else>
+        <EmptyState
+          eyebrow="Profile"
+          title="Archive Empty"
+          description="You have not shared any wisdom or poetry yet."
+          primary-label="Create First Entry"
+          primary-to="/contribute"
+        />
+      </div>
+
+      <div class="border-b border-gray-200 bg-gray-50 px-10 py-6 border-l lg:border-l-0">
+        <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+          Saved Items
+        </h2>
+      </div>
+
+      <div v-if="favoritesStore.items.length > 0">
+        <div
+          class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white"
         >
-          Create First Entry
-        </router-link>
+          <div
+            v-for="(submission, index) in favoritesStore.items"
+            :key="submission.id"
+            class="hover:bg-gray-50 transition-colors duration-300"
+          >
+            <SubmissionCard :submission="submission" :index="index" />
+          </div>
+        </div>
+
+        <div class="bg-white">
+          <LoadMore
+            :has-more="!!favoritesStore.lastDoc"
+            :loading="isFavoritesLoadingMore"
+            :show-end="!favoritesStore.busy && favoritesStore.items.length > 0"
+            @load-more="handleLoadMoreFavorites"
+          />
+        </div>
+      </div>
+
+      <div v-else>
+        <EmptyState
+          eyebrow="Favorites"
+          title="No saved items yet"
+          description="Save entries you want to revisit later."
+          primary-label="Browse Archive"
+          primary-to="/collections"
+        />
       </div>
     </div>
   </main>

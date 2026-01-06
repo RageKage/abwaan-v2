@@ -155,6 +155,15 @@
         </div>
       </div>
     </section>
+    <section v-else-if="!submissionsStore.busy" class="max-w-[1600px] mx-auto border-b border-gray-200">
+      <EmptyState
+        eyebrow="Latest Entries"
+        title="No entries yet"
+        description="Be the first to contribute a proverb or poem to the archive."
+        primary-label="Contribute"
+        primary-to="/contribute"
+      />
+    </section>
   </div>
 </template>
 
@@ -162,6 +171,7 @@
 import { onMounted, ref } from 'vue'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
 
 // Image Imports
 import somaliPortrait from '@/assets/images/somali_portrait_hyatt.jpg'

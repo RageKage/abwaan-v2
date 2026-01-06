@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { SubmissionType } from '@/data/models/submission'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
-import SearchBar from './SearchBar.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
 import BaseDropdown from '@/shared/components/BaseDropdown.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
 
 const submissionsStore = useSubmissionsStore()
 
+// --- Filter State ---
 const activeTab = ref<'all' | SubmissionType>('all')
 const sortBy = ref<'createdAt' | 'voteScore'>('createdAt')
 const activeLanguage = ref<'all' | 'so' | 'en'>('all')
 const searchTerm = ref('')
 const isLoadingMore = ref(false)
 
+// --- Scroll & Visibility State ---
+const isFilterBarVisible = ref(true)
+const lastScrollY = ref(0)
+
+// --- Configuration ---
 const tabs = [
   { key: 'all', label: 'All Records' },
   { key: 'Proverb', label: 'Proverbs' },
@@ -32,14 +38,20 @@ const sortOptions = [
   { key: 'voteScore', label: 'Top Rated' },
 ] as const
 
+// --- Computed ---
 const activeType = computed(() => (activeTab.value === 'all' ? undefined : activeTab.value))
 const activeLang = computed(() => (activeLanguage.value === 'all' ? undefined : activeLanguage.value))
+const hasSearch = computed(() => searchTerm.value.trim().length > 0)
+const hasFilters = computed(
+  () => activeTab.value !== 'all' || activeLanguage.value !== 'all' || sortBy.value !== 'createdAt',
+)
 const contentState = computed(() => {
   if (submissionsStore.busy) return 'loading'
   if (submissionsStore.items.length === 0) return 'empty'
   return 'grid'
 })
 
+// --- Logic ---
 const loadLatest = async () => {
   await submissionsStore.loadLatest(activeType.value, false, sortBy.value, activeLang.value)
 }
@@ -54,6 +66,50 @@ const handleResetFilters = () => {
   activeTab.value = 'all'
 }
 
+const handleClearSearch = () => {
+  searchTerm.value = ''
+}
+
+// --- Empty State Logic ---
+const emptyStateTitle = computed(() => {
+  if (hasSearch.value) return `No results for "${searchTerm.value.trim()}"`
+  if (hasFilters.value) return 'No records match your filters'
+  return 'The archive is empty'
+})
+
+const emptyStateDescription = computed(() => {
+  if (hasSearch.value) return 'Try a different keyword or clear your search.'
+  if (hasFilters.value) return 'Adjust the filters to explore more entries.'
+  return 'Be the first to add a proverb or poem to the collection.'
+})
+
+const emptyPrimaryLabel = computed(() => {
+  if (hasSearch.value) return 'Clear search'
+  if (hasFilters.value) return 'Reset filters'
+  return 'Contribute'
+})
+
+const emptyPrimaryTo = computed(() => {
+  if (!hasSearch.value && !hasFilters.value) return '/contribute'
+  return undefined
+})
+
+const emptyPrimaryAction = computed(() => {
+  if (hasSearch.value) return handleClearSearch
+  if (hasFilters.value) return handleResetFilters
+  return undefined
+})
+
+const emptySecondaryLabel = computed(() => {
+  if (hasSearch.value && hasFilters.value) return 'Reset filters'
+  return undefined
+})
+
+const emptySecondaryAction = computed(() => {
+  if (hasSearch.value && hasFilters.value) return handleResetFilters
+  return undefined
+})
+
 const handleLoadMore = async () => {
   isLoadingMore.value = true
   try {
@@ -63,7 +119,38 @@ const handleLoadMore = async () => {
   }
 }
 
-onMounted(loadLatest)
+// --- Scroll Handler for Smart Bar ---
+const handleScroll = () => {
+  const currentScrollY = window.scrollY
+
+  // Ignore small movements (jitter)
+  if (Math.abs(currentScrollY - lastScrollY.value) < 10) return
+
+  // If at top, always show
+  if (currentScrollY < 50) {
+    isFilterBarVisible.value = true
+  }
+  // If scrolling DOWN, hide
+  else if (currentScrollY > lastScrollY.value) {
+    isFilterBarVisible.value = false
+  }
+  // If scrolling UP, show
+  else {
+    isFilterBarVisible.value = true
+  }
+
+  lastScrollY.value = currentScrollY
+}
+
+// --- Lifecycle ---
+onMounted(() => {
+  loadLatest()
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 watch([activeType, sortBy, activeLanguage], () => {
   if (!searchTerm.value) {
@@ -79,42 +166,17 @@ watch(searchTerm, (newTerm) => {
 </script>
 
 <template>
-  <main
-    class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24 font-sans text-gray-900 transition-all duration-300"
-  >
-    <div class="border-b border-gray-200">
-      <div class="max-w-[1600px] mx-auto grid lg:grid-cols-12 min-h-[300px]">
-        <div class="lg:col-span-7 p-8 md:p-12 lg:p-16 border-r border-gray-200 flex flex-col justify-end bg-gray-50">
-          <div class="space-y-6">
-            <span
-              class="inline-block px-3 py-1 rounded-3xl border border-gray-900 text-[10px] font-bold uppercase tracking-widest w-fit"
-            >
-              Digital Library
-            </span>
-            <h1 class="text-6xl md:text-8xl font-serif tracking-tighter leading-none text-gray-900">The Archive</h1>
-            <p class="text-xl text-gray-500 max-w-lg font-light leading-relaxed">
-              Explore the latest verses, wisdom, and cultural heritage shared by the community.
-            </p>
-          </div>
-        </div>
-
-        <div class="lg:col-span-5 p-8 md:p-12 lg:p-16 flex items-end bg-white">
-          <div class="w-full">
-            <label class="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Search Database</label>
-            <SearchBar v-model="searchTerm" placeholder="Type keywords..." @search="handleSearch" class="w-full" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white border-b border-gray-200 z-40 sticky top-0 shadow-sm">
-      <div class="max-w-[1600px] mx-auto grid lg:grid-cols-12">
-        <div class="lg:col-span-7 border-b lg:border-b-0 lg:border-r border-gray-200 flex overflow-x-auto no-scrollbar">
+  <main class="page-shell app-panel dot-pattern">
+    <div class="bg-white border-y border-gray-200 shadow-sm">
+      <div
+        class="max-w-[1600px] mx-auto grid lg:grid-cols-12 h-auto lg:h-16 divide-y lg:divide-y-0 lg:divide-x divide-gray-200"
+      >
+        <div class="lg:col-span-4 flex overflow-x-auto no-scrollbar">
           <button
             v-for="tab in tabs"
             :key="tab.key"
             @click="activeTab = tab.key"
-            class="flex-1 min-w-[140px] h-14 flex items-center justify-center text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r border-gray-100 lg:border-gray-200 last:border-r-0 lg:last:border-r-0"
+            class="flex-1 min-w-[100px] h-16 lg:h-full flex items-center justify-center text-xs font-bold uppercase tracking-widest transition-all duration-200 border-r border-gray-100 lg:border-r-0 last:border-r-0"
             :class="
               activeTab === tab.key
                 ? 'bg-gray-900 text-white'
@@ -125,18 +187,47 @@ watch(searchTerm, (newTerm) => {
           </button>
         </div>
 
-        <div class="lg:col-span-5 flex bg-white">
-          <div class="flex-1 h-14 border-r border-gray-200 relative group hover:bg-gray-50 transition-colors">
+        <div class="lg:col-span-5 flex items-center px-6 bg-white group hover:bg-gray-50 transition-colors">
+          <div class="w-full relative flex items-center">
+            <svg class="w-4 h-4 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              v-model="searchTerm"
+              @keydown.enter="handleSearch"
+              type="text"
+              placeholder="Search database..."
+              class="w-full h-16 bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none uppercase tracking-wider"
+            />
+            <button
+              v-if="searchTerm"
+              @click="handleClearSearch"
+              class="text-xs font-bold text-gray-400 hover:text-red-500 uppercase transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-3 flex bg-white">
+          <div
+            class="flex-1 h-16 border-r lg:border-l border-gray-200 relative group hover:bg-gray-50 transition-colors"
+          >
             <BaseDropdown
               v-model="activeLanguage"
               :options="languages"
-              label="LANG"
+              label="Lang"
               class="w-full h-full justify-center"
             />
           </div>
 
-          <div class="flex-1 h-14 relative group hover:bg-gray-50 transition-colors">
-            <BaseDropdown v-model="sortBy" :options="sortOptions" label="SORT" class="w-full h-full justify-center" />
+          <div class="flex-1 h-16 relative group hover:bg-gray-50 transition-colors">
+            <BaseDropdown v-model="sortBy" :options="sortOptions" label="Sort" class="w-full h-full justify-center" />
           </div>
         </div>
       </div>
@@ -158,25 +249,17 @@ watch(searchTerm, (newTerm) => {
         </div>
       </div>
 
-      <div
-        v-else-if="contentState === 'empty'"
-        class="flex flex-col items-center justify-center py-32 border-b border-gray-200"
-      >
-        <div
-          class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-6"
-        >
-          <span class="text-2xl text-gray-400">?</span>
-        </div>
-        <h3 class="text-2xl font-serif text-gray-900 mb-2">No Records Found</h3>
-        <p class="text-gray-500 mb-8 max-w-sm text-center">
-          We couldn't find any entries matching your criteria. Try adjusting your filters.
-        </p>
-        <button
-          @click="handleResetFilters"
-          class="px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors"
-        >
-          Clear Filters
-        </button>
+      <div v-else-if="contentState === 'empty'">
+        <EmptyState
+          eyebrow="Archive"
+          :title="emptyStateTitle"
+          :description="emptyStateDescription"
+          :primary-label="emptyPrimaryLabel"
+          :primary-to="emptyPrimaryTo"
+          :primary-action="emptyPrimaryAction"
+          :secondary-label="emptySecondaryLabel"
+          :secondary-action="emptySecondaryAction"
+        />
       </div>
 
       <div
@@ -191,24 +274,15 @@ watch(searchTerm, (newTerm) => {
           <SubmissionCard :submission="submission" :index="index" />
         </div>
       </div>
+
       <div class="bg-white">
         <LoadMore
           v-if="!searchTerm"
           :has-more="!!submissionsStore.lastDoc"
           :loading="isLoadingMore"
+          :show-end="!submissionsStore.busy && submissionsStore.items.length > 0"
           @load-more="handleLoadMore"
         />
-
-        <div
-          v-if="!submissionsStore.busy && submissionsStore.items.length > 0 && !submissionsStore.lastDoc && !searchTerm"
-          class="py-[32px] flex justify-center opacity-40"
-        >
-          <div class="flex items-center gap-4 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
-            <span class="h-px w-8 bg-gray-300"></span>
-            <span>End of Archive</span>
-            <span class="h-px w-8 bg-gray-300"></span>
-          </div>
-        </div>
       </div>
     </div>
   </main>

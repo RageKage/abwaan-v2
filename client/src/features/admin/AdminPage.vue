@@ -5,6 +5,7 @@ import type { Report, ReportStatus } from '@/data/models/report'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import { useReportsStore } from '@/features/admin/reports.store'
 import { toastError, toastSuccess } from '@/shared/utils/alerts'
+import EmptyState from '@/shared/components/EmptyState.vue'
 import {
   ArrowUpRightIcon,
   EyeSlashIcon,
@@ -22,6 +23,13 @@ const submissionLoading = computed(() => submissionsStore.busy)
 const reportLoading = computed(() => reportsStore.busy)
 const submissionItems = computed(() => submissionsStore.items)
 const reportItems = computed(() => reportsStore.items)
+const emptyTitle = computed(() => (activeTab.value === 'submissions' ? 'Queue is clear' : 'No reports to review'))
+const emptyDescription = computed(() => {
+  if (activeTab.value === 'submissions') {
+    return 'No submissions need moderation right now.'
+  }
+  return 'Reports will show up here when the community flags content.'
+})
 
 const countLabel = computed(() => {
   if (activeTab.value === 'submissions') return `${submissionItems.value.length}`.padStart(2, '0')
@@ -146,8 +154,14 @@ watch([activeReportStatus, activeTab], () => {
          <span class="font-mono text-xs animate-pulse">LOADING DATA...</span>
       </div>
 
-      <div v-else-if="(activeTab === 'submissions' && submissionItems.length === 0) || (activeTab === 'reports' && reportItems.length === 0)" class="p-20 text-center border-b border-gray-200">
-         <span class="font-mono text-xs text-gray-400">QUEUE EMPTY</span>
+      <div
+        v-else-if="(activeTab === 'submissions' && submissionItems.length === 0) || (activeTab === 'reports' && reportItems.length === 0)"
+      >
+        <EmptyState
+          eyebrow="Admin Desk"
+          :title="emptyTitle"
+          :description="emptyDescription"
+        />
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">

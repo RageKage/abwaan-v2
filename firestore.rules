@@ -55,6 +55,10 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /privateUsers/{uid}/favorites/{favoriteId} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
     // ---------- USERNAMES REGISTRY ----------
     match /usernames/{name} {
       allow read: if true;
@@ -79,9 +83,18 @@ service cloud.firestore {
         && request.resource.data.username == resource.data.username
         && request.resource.data.displayName == resource.data.displayName
         && request.resource.data.status == resource.data.status
-        && request.resource.data.statusChangedAt == resource.data.statusChangedAt
-        && request.resource.data.statusChangedBy == resource.data.statusChangedBy
-        && request.resource.data.statusReason == resource.data.statusReason
+        && (
+          (!('statusChangedAt' in resource.data) && !('statusChangedAt' in request.resource.data))
+          || request.resource.data.statusChangedAt == resource.data.statusChangedAt
+        )
+        && (
+          (!('statusChangedBy' in resource.data) && !('statusChangedBy' in request.resource.data))
+          || request.resource.data.statusChangedBy == resource.data.statusChangedBy
+        )
+        && (
+          (!('statusReason' in resource.data) && !('statusReason' in request.resource.data))
+          || request.resource.data.statusReason == resource.data.statusReason
+        )
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.voteUp == resource.data.voteUp
         && request.resource.data.voteDown == resource.data.voteDown

@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { usePublicProfileStore } from '@/features/profile/publicProfile.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
+import EmptyState from '@/shared/components/EmptyState.vue'
 const route = useRoute()
 
 const publicProfileStore = usePublicProfileStore()
@@ -30,9 +31,7 @@ watch(
 </script>
 
 <template>
-  <main
-    class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24 font-sans text-gray-900 transition-all duration-300"
-  >
+  <main class="page-shell app-surface dot-pattern">
     <div v-if="loading" class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
       <div class="flex flex-col items-center gap-6">
         <div class="h-12 w-12 animate-spin rounded-full border-2 border-gray-200 border-t-carrotOrange-500"></div>
@@ -120,33 +119,23 @@ watch(
         </div>
 
         <div class="col-span-12 bg-white">
-          <LoadMore :has-more="!!lastDoc" :loading="loadingMore" @load-more="handleLoadMore" />
-
-          <div v-if="!lastDoc" class="py-[32px] flex justify-center opacity-40">
-            <div class="flex items-center gap-4 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
-              <span class="h-px w-8 bg-gray-300"></span>
-              <span>End of Archive</span>
-              <span class="h-px w-8 bg-gray-300"></span>
-            </div>
-          </div>
+          <LoadMore
+            :has-more="!!lastDoc"
+            :loading="loadingMore"
+            :show-end="submissions.length > 0"
+            @load-more="handleLoadMore"
+          />
         </div>
       </div>
 
-      <div v-else class="py-32 flex flex-col items-center justify-center text-center border-b border-gray-200 bg-white">
-        <div class="mb-6 opacity-20 text-gray-300">
-          <svg class="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-        </div>
-        <h3 class="text-2xl font-serif text-gray-900 mb-2">The Archive is Silent</h3>
-        <p class="text-gray-500 font-light text-sm tracking-wide max-w-xs mx-auto">
-          This member has not yet contributed to the library.
-        </p>
+      <div v-else>
+        <EmptyState
+          eyebrow="Contributor"
+          title="The Archive is Silent"
+          description="This member has not yet contributed to the library."
+          primary-label="Browse Archive"
+          primary-to="/collections"
+        />
       </div>
     </div>
   </main>
