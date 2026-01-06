@@ -9,7 +9,7 @@ import {
   ArrowUpRightIcon,
   EyeSlashIcon,
   CheckIcon
-} from '@heroicons/vue/24/outline' // Using simple outlines
+} from '@heroicons/vue/24/outline'
 
 const submissionsStore = useSubmissionsStore()
 const reportsStore = useReportsStore()

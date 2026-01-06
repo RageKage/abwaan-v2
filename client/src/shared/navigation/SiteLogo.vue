@@ -1,5 +1,5 @@
 <template>
-  <router-link to="/" class="group flex items-center justify-center h-full outline-none px-8 md:px-12">
+  <router-link to="/" class="group flex items-center justify-center h-full outline-none px-8">
     <img
       src="@/assets/logo/Abwaan_4.svg"
       alt="Wisdom Weyn Logo"

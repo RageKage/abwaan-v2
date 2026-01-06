@@ -136,11 +136,20 @@ export const useSubmissionsStore = defineStore('submissions', () => {
   }
 
   const update = async (id: string, patch: Partial<Submission>) => {
+    const authStore = useAuthStore()
+    if (!authStore.user) {
+      throw new Error('Please log in again.')
+    }
+
     busy.value = true
     error.value = null
     try {
-      await updateSubmission(id, patch)
-      const patchWithTimestamp = { ...patch, updatedAt: Date.now() }
+      await updateSubmission(id, {
+        ...patch,
+        username: selected.value?.username ?? null,
+        updatedBy: authStore.user.uid,
+      })
+      const patchWithTimestamp = { ...patch, updatedAt: Date.now(), updatedBy: authStore.user.uid }
       if (selected.value?.id === id) {
         selected.value = { ...selected.value, ...patchWithTimestamp }
       }

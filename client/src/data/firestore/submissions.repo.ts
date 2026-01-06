@@ -40,6 +40,9 @@ type SubmissionPublicFields = Partial<
     | 'status'
     | 'createdAt'
     | 'updatedAt'
+    | 'updatedBy'
+    | 'searchIndex'
+    | 'searchKeywords'
   >
 >
 
@@ -58,6 +61,9 @@ export const pickSubmissionPublicFields = (input: Record<string, unknown>): Subm
     'status',
     'createdAt',
     'updatedAt',
+    'updatedBy',
+    'searchIndex',
+    'searchKeywords',
   ])
 
   const bannedKeys = Object.keys(input).filter((key) => BANNED_KEYS.includes(key))
@@ -77,6 +83,38 @@ const normalizeSource = (source?: NewSubmissionInput['source']): SubmissionSourc
     url: source.url?.trim() || null,
     notes: source.notes?.trim() || null,
   }
+}
+
+export const buildSubmissionSearchFields = ({
+  type,
+  title,
+  text,
+  meaning,
+  username,
+}: {
+  type: SubmissionType
+  title: string
+  text: string
+  meaning: string
+  username?: string | null
+}) => {
+  const normalizedTitle = title.trim()
+  const normalizedText = text.trim()
+  const normalizedMeaning = meaning.trim()
+  const normalizedType = type.trim()
+
+  const searchIndex = (normalizedType === 'Poetry' ? normalizedTitle : normalizedText).toLowerCase()
+  const searchKeywords = [
+    ...new Set([
+      ...normalizedTitle.toLowerCase().split(/\s+/).filter(Boolean),
+      ...normalizedText.toLowerCase().split(/\s+/).filter(Boolean),
+      ...normalizedMeaning.toLowerCase().split(/\s+/).filter(Boolean),
+      ...(username ? [username.toLowerCase()] : []),
+      normalizedType.toLowerCase(),
+    ]),
+  ]
+
+  return { searchIndex, searchKeywords }
 }
 
 const normalizeSubmission = (id: string, data: Partial<Submission>): Submission => {
@@ -99,6 +137,7 @@ const normalizeSubmission = (id: string, data: Partial<Submission>): Submission 
     source: data.source ?? null,
     createdAt: data.createdAt ?? Date.now(),
     updatedAt: data.updatedAt ?? null,
+    updatedBy: data.updatedBy ?? null,
     voteUp: data.voteUp ?? 0,
     voteDown: data.voteDown ?? 0,
     voteScore: data.voteScore ?? 0,
@@ -126,6 +165,13 @@ export const createSubmission = async (
   const type = (publicInput.type ?? input.type) as SubmissionType
 
   const displayName = author.profile?.displayName || author.displayName || author.email || 'Anonymous'
+  const searchFields = buildSubmissionSearchFields({
+    type,
+    title: title || '',
+    text: input.text,
+    meaning: input.meaning,
+    username: author.profile?.username ?? null,
+  })
 
   const payload: Omit<Submission, 'id'> = {
     uid: author.uid,
@@ -142,21 +188,14 @@ export const createSubmission = async (
     source: origin === 'shared' ? normalizeSource(input.source) : null,
     createdAt: Date.now(),
     updatedAt: null,
+    updatedBy: null,
     voteUp: 0,
     voteDown: 0,
     voteScore: 0,
     // Add searchable index field (normalized for case-insensitive search)
-    searchIndex: (type === 'Poetry' ? title : input.text).trim().toLowerCase(),
+    searchIndex: searchFields.searchIndex,
     // Array of words for more flexible search (whole word match)
-    searchKeywords: [
-      ...new Set([
-        ...title.toLowerCase().split(/\s+/).filter(Boolean),
-        ...input.text.toLowerCase().split(/\s+/).filter(Boolean),
-        ...input.meaning.toLowerCase().split(/\s+/).filter(Boolean),
-        ...(author.profile?.username ? [author.profile.username.toLowerCase()] : []),
-        type.toLowerCase(),
-      ]),
-    ],
+    searchKeywords: searchFields.searchKeywords,
   }
 
   const docRef = await addDoc(collection(db, 'submissions'), payload)
@@ -217,6 +256,18 @@ export const updateSubmission = async (id: string, patch: Partial<Submission>): 
   delete (publicPatch as Partial<Submission>).uid
   delete (publicPatch as Partial<Submission>).username
   delete (publicPatch as Partial<Submission>).displayName
+
+  const shouldUpdateSearch = ['title', 'text', 'meaning', 'type'].some((key) => key in publicPatch)
+  if (shouldUpdateSearch) {
+    const type = (publicPatch.type ?? patch.type ?? 'Proverb') as SubmissionType
+    const title = typeof publicPatch.title === 'string' ? publicPatch.title : ''
+    const text = typeof publicPatch.text === 'string' ? publicPatch.text : ''
+    const meaning = typeof publicPatch.meaning === 'string' ? publicPatch.meaning : ''
+    const username = typeof patch.username === 'string' ? patch.username : null
+    const searchFields = buildSubmissionSearchFields({ type, title, text, meaning, username })
+    publicPatch.searchIndex = searchFields.searchIndex
+    publicPatch.searchKeywords = searchFields.searchKeywords
+  }
 
   if (!Object.keys(publicPatch).length) return
 

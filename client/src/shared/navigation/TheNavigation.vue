@@ -105,11 +105,11 @@ watch(isMobileMenuOpen, (isOpen) => {
     <div class="mx-auto max-w-[1600px] h-20 md:h-24">
       <div class="h-full w-full">
         <div class="flex items-center justify-between h-full">
-          <div class="md:hidden flex items-center justify-between w-full px-6 border-r border-gray-200 h-full">
+          <div class="md:hidden flex items-center justify-between w-full border-r border-gray-200 h-full">
             <SiteLogo />
             <button
               type="button"
-              class="p-4 -mr-4 text-gray-900 hover:bg-gray-50 transition-colors h-full flex items-center border-l border-gray-200"
+              class="h-full aspect-square flex items-center justify-center border-l border-gray-200 hover:bg-gray-50 hover:text-white transition-colors group"
               @click="openMobileMenu"
             >
               <span class="sr-only">Open Menu</span>

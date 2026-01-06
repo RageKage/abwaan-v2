@@ -28,6 +28,7 @@ export interface Submission {
   source: SubmissionSource | null
   createdAt: number
   updatedAt: number | null
+  updatedBy?: string | null
   voteUp: number
   voteDown: number
   voteScore: number

@@ -81,7 +81,12 @@ service cloud.firestore {
         && request.resource.data.status == resource.data.status
         && request.resource.data.statusChangedAt == resource.data.statusChangedAt
         && request.resource.data.statusChangedBy == resource.data.statusChangedBy
-        && request.resource.data.statusReason == resource.data.statusReason)
+        && request.resource.data.statusReason == resource.data.statusReason
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.voteUp == resource.data.voteUp
+        && request.resource.data.voteDown == resource.data.voteDown
+        && request.resource.data.voteScore == resource.data.voteScore
+        && request.resource.data.updatedBy == request.auth.uid)
         || isAdmin();
       allow delete: if isOwner(resource.data.uid) || isAdmin();
 

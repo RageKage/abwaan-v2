@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import type { Submission } from '@/data/models/submission'
 import {
   formatSubmissionDate,
@@ -7,19 +8,35 @@ import {
   submissionPreviewText,
 } from '@/shared/utils/submissions'
 
+const router = useRouter()
+
 const props = defineProps<{
   submission: Submission
   index?: number
 }>()
+
+const goToSubmission = () => {
+  router.push(`/s/${props.submission.id}`)
+}
+
+const handleCardKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    goToSubmission()
+  }
+}
 </script>
 
 <template>
-  <router-link
-    :to="`/s/${props.submission.id}`"
+  <article
     v-motion
     :initial="{ opacity: 0 }"
     :enter="{ opacity: 1, transition: { delay: props.index ? props.index * 50 : 0 } }"
-    class="group block h-full p-10 md:p-12 flex flex-col justify-between relative z-0"
+    class="group block h-full p-10 md:p-12 flex flex-col justify-between relative z-0 cursor-pointer"
+    role="link"
+    tabindex="0"
+    @click="goToSubmission"
+    @keydown="handleCardKeydown"
   >
     <div class="flex items-start justify-between mb-8">
       <div class="flex flex-col gap-1">
@@ -56,7 +73,12 @@ const props = defineProps<{
     <div
       class="mt-auto pt-6 border-t border-gray-100 flex items-center justify-between group-hover:border-gray-200 transition-colors"
     >
-      <div class="flex items-center gap-3">
+      <router-link
+        :to="`/p/${props.submission.uid}`"
+        class="flex items-center gap-3"
+        @click.stop
+        @keydown.stop
+      >
         <div
           class="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500 group-hover:bg-carrotOrange-500 group-hover:text-white group-hover:border-carrotOrange-500 transition-colors"
         >
@@ -65,7 +87,7 @@ const props = defineProps<{
         <span class="text-xs font-bold text-gray-500 uppercase tracking-wider group-hover:text-gray-900">
           {{ submissionAuthorLabel(props.submission) }}
         </span>
-      </div>
+      </router-link>
 
       <div class="flex items-center gap-2">
         <span class="text-xs font-mono font-bold text-gray-300 group-hover:text-carrotOrange-500 transition-colors">
@@ -83,5 +105,5 @@ const props = defineProps<{
         </svg>
       </div>
     </div>
-  </router-link>
+  </article>
 </template>
