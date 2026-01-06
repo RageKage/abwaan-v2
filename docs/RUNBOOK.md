@@ -4,7 +4,7 @@
 - Node.js 20.x (functions runtime is Node 20)
 - Firebase CLI: `npm install -g firebase-tools`
 - Firebase login: `firebase login`
-- Select project: `firebase use project-abwaan-dev-V2`
+- Select project: `firebase use project-abwaan-dev-v2`
 
 ## Local Development
 
@@ -52,7 +52,7 @@ Notes:
 ### Quick preview (hosting only)
 ```bash
 npm --prefix client run build
-firebase hosting:channel:deploy preview
+firebase hosting:channel:deploy preview --project project-abwaan-dev-v2
 ```
 
 ### Full preview flow
@@ -61,13 +61,13 @@ npm --prefix client run build
 firebase deploy --only firestore:rules,firestore:indexes
 npm --prefix functions run build
 firebase deploy --only functions
-firebase hosting:channel:deploy preview --project project-abwaan-dev-V2
+firebase hosting:channel:deploy preview --project project-abwaan-dev-v2
 
 ```
 
 ### Delete preview channel
 ```bash
-firebase hosting:channel:delete preview --project project-abwaan-dev-V2
+firebase hosting:channel:delete preview --project project-abwaan-dev-v2
 
 ```
 
