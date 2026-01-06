@@ -45,9 +45,7 @@ type SubmissionPublicFields = Partial<
 
 const BANNED_KEYS = ['email', 'providerId', 'privateUsers', 'uid', 'username']
 
-export const pickSubmissionPublicFields = (
-  input: Record<string, unknown>,
-): SubmissionPublicFields => {
+export const pickSubmissionPublicFields = (input: Record<string, unknown>): SubmissionPublicFields => {
   const allowedKeys = new Set([
     'title',
     'text',
@@ -67,9 +65,7 @@ export const pickSubmissionPublicFields = (
     console.warn('Ignoring banned keys in submission payload:', bannedKeys)
   }
 
-  return Object.fromEntries(
-    Object.entries(input).filter(([key]) => allowedKeys.has(key)),
-  ) as SubmissionPublicFields
+  return Object.fromEntries(Object.entries(input).filter(([key]) => allowedKeys.has(key))) as SubmissionPublicFields
 }
 
 const normalizeSource = (source?: NewSubmissionInput['source']): SubmissionSource | null => {
@@ -121,14 +117,12 @@ export const createSubmission = async (
   const publicInput = pickSubmissionPublicFields(input as unknown as Record<string, unknown>)
 
   const title = typeof publicInput.title === 'string' ? publicInput.title.trim() : ''
-  const translation =
-    typeof publicInput.translation === 'string' ? publicInput.translation.trim() : ''
+  const translation = typeof publicInput.translation === 'string' ? publicInput.translation.trim() : ''
   const origin = (publicInput.origin ?? input.origin) as SubmissionOrigin
   const status = 'published' as SubmissionStatus
   const type = (publicInput.type ?? input.type) as SubmissionType
 
-  const displayName =
-    author.profile?.displayName || author.displayName || author.email || 'Anonymous'
+  const displayName = author.profile?.displayName || author.displayName || author.email || 'Anonymous'
 
   const payload: Omit<Submission, 'id'> = {
     uid: author.uid,
@@ -183,10 +177,7 @@ export const listSubmissions = async ({
   limit?: number
   lastDoc?: QueryDocumentSnapshot | null
 } = {}): Promise<{ items: Submission[]; lastDoc: QueryDocumentSnapshot | null }> => {
-  const constraints: QueryConstraint[] = [
-    orderBy(sortBy, order),
-    limitResults(limit ?? 20),
-  ]
+  const constraints: QueryConstraint[] = [orderBy(sortBy, order), limitResults(limit ?? 20)]
   if (status !== 'all') {
     constraints.unshift(where('status', '==', status))
   }
@@ -201,10 +192,8 @@ export const listSubmissions = async ({
   }
   const submissionsQuery = query(collection(db, 'submissions'), ...constraints)
   const snapshot = await getDocs(submissionsQuery)
-  
-  const items = snapshot.docs.map((docSnap) =>
-    normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>),
-  )
+
+  const items = snapshot.docs.map((docSnap) => normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
 
   const newLastDoc = snapshot.docs[snapshot.docs.length - 1] ?? null
 
@@ -218,10 +207,7 @@ export const getSubmission = async (id: string): Promise<Submission | null> => {
   return normalizeSubmission(snapshot.id, snapshot.data() as Partial<Submission>)
 }
 
-export const updateSubmission = async (
-  id: string,
-  patch: Partial<Submission>,
-): Promise<void> => {
+export const updateSubmission = async (id: string, patch: Partial<Submission>): Promise<void> => {
   const publicPatch = pickSubmissionPublicFields(patch as unknown as Record<string, unknown>)
   delete publicPatch.createdAt
   delete publicPatch.status
@@ -253,7 +239,7 @@ export const getSubmissionWithUserVote = async (
   if (!submissionSnap.exists()) return null
 
   const submission = normalizeSubmission(submissionSnap.id, submissionSnap.data() as Partial<Submission>)
-  const userVote = (voteSnap?.exists() ? voteSnap.data()?.value ?? 0 : 0) as 1 | 0 | -1
+  const userVote = (voteSnap?.exists() ? (voteSnap.data()?.value ?? 0) : 0) as 1 | 0 | -1
 
   return { submission, userVote }
 }
@@ -264,11 +250,7 @@ export const listSubmissionsByAuthor = async (
   lastDoc: QueryDocumentSnapshot | null = null,
   status: SubmissionStatusFilter = 'published',
 ): Promise<{ items: Submission[]; lastDoc: QueryDocumentSnapshot | null }> => {
-  const constraints: QueryConstraint[] = [
-    where('uid', '==', uid),
-    orderBy('createdAt', 'desc'),
-    limitResults(limit),
-  ]
+  const constraints: QueryConstraint[] = [where('uid', '==', uid), orderBy('createdAt', 'desc'), limitResults(limit)]
 
   if (status !== 'all') {
     constraints.splice(1, 0, where('status', '==', status))
@@ -281,9 +263,7 @@ export const listSubmissionsByAuthor = async (
   const submissionsQuery = query(collection(db, 'submissions'), ...constraints)
   const snapshot = await getDocs(submissionsQuery)
 
-  const items = snapshot.docs.map((docSnap) =>
-    normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>),
-  )
+  const items = snapshot.docs.map((docSnap) => normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
 
   const newLastDoc = snapshot.docs[snapshot.docs.length - 1] ?? null
 
@@ -317,10 +297,7 @@ export const searchSubmissions = async (
     limitResults(perQueryLimit),
   )
 
-  const [prefixSnap, keywordSnap] = await Promise.all([
-    getDocs(prefixQuery),
-    getDocs(keywordQuery),
-  ])
+  const [prefixSnap, keywordSnap] = await Promise.all([getDocs(prefixQuery), getDocs(keywordQuery)])
 
   const resultMap = new Map<string, Submission>()
 

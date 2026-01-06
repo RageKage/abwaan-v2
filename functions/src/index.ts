@@ -89,11 +89,11 @@ export const onSubmissionDelete = firestore
   });
 
 // Callable (v2): claim username atomically
-export const claimUsername = onCall(async (request) => {
+export const claimUsername = onCall<{username?: string}>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
 
-  const raw = String((request.data as any)?.username ?? "");
+  const raw = String(request.data?.username ?? "");
   const {usernameOriginal, usernameLower} = normalizeUsername(raw);
 
   const usernameRef = db.collection("usernames").doc(usernameLower);
@@ -118,12 +118,15 @@ export const claimUsername = onCall(async (request) => {
 });
 
 // Callable (v2): vote on submission (updates counters safely)
-export const voteSubmission = onCall(async (request) => {
+export const voteSubmission = onCall<{
+  submissionId?: string;
+  value?: number;
+}>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
 
-  const submissionId = String((request.data as any)?.submissionId ?? "");
-  const value = Number((request.data as any)?.value); // 1, -1, or 0
+  const submissionId = String(request.data?.submissionId ?? "");
+  const value = Number(request.data?.value); // 1, -1, or 0
 
   if (!submissionId) {
     throw new HttpsError("invalid-argument", "Missing submissionId.");

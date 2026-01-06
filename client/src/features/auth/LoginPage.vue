@@ -74,35 +74,41 @@ const handleGoogleLogin = async () => {
 </script>
 
 <template>
-  <main class="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden font-sans text-gray-900">
-
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
-         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;">
-    </div>
+  <main
+    class="min-h-screen w-full bg-white flex items-center justify-center relative overflow-hidden font-sans text-gray-900"
+  >
+    <div
+      class="absolute inset-0 opacity-[0.03] pointer-events-none"
+      style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px"
+    ></div>
 
     <div class="w-full max-w-md relative z-10 p-6">
-
       <div class="bg-white border border-gray-200 shadow-none">
-
         <div class="p-10 border-b border-gray-200 bg-gray-50 text-center">
-           <router-link to="/" class="inline-block mb-6 group">
-              <div class="w-12 h-12 border border-gray-900 rounded-full flex items-center justify-center group-hover:bg-carrotOrange-500 group-hover:border-carrotOrange-500 group-hover:text-white transition-colors duration-300">
-                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                 </svg>
-              </div>
-           </router-link>
-           <h1 class="text-3xl font-serif text-gray-900 mb-2 tracking-tight">
-             {{ title }}
-           </h1>
-           <p class="text-xs font-mono text-gray-400 uppercase tracking-widest">
-             {{ isRegister ? 'Initialize new account' : 'Authenticate session' }}
-           </p>
+          <router-link to="/" class="inline-block mb-6 group">
+            <div
+              class="w-12 h-12 border border-gray-900 rounded-full flex items-center justify-center group-hover:bg-carrotOrange-500 group-hover:border-carrotOrange-500 group-hover:text-white transition-colors duration-300"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+            </div>
+          </router-link>
+          <h1 class="text-3xl font-serif text-gray-900 mb-2 tracking-tight">
+            {{ title }}
+          </h1>
+          <p class="text-xs font-mono text-gray-400 uppercase tracking-widest">
+            {{ isRegister ? 'Initialize new account' : 'Authenticate session' }}
+          </p>
         </div>
 
         <div class="p-10 space-y-8">
           <form class="space-y-8" @submit.prevent="handleSubmit">
-
             <div v-if="isRegister" class="group">
               <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Identity</label>
               <input
@@ -116,7 +122,9 @@ const handleGoogleLogin = async () => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Credentials</label>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                Credentials
+              </label>
               <input
                 v-model="email"
                 type="email"
@@ -128,7 +136,9 @@ const handleGoogleLogin = async () => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Security Key</label>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                Security Key
+              </label>
               <input
                 v-model="password"
                 type="password"
@@ -144,15 +154,18 @@ const handleGoogleLogin = async () => {
               :disabled="authStore.busy"
               class="w-full py-4 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait mt-4"
             >
-              <span v-if="authStore.busy" class="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              <span
+                v-if="authStore.busy"
+                class="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              ></span>
               {{ submitLabel }}
             </button>
           </form>
 
           <div class="relative flex items-center py-2">
-             <div class="flex-grow border-t border-gray-200"></div>
-             <span class="flex-shrink-0 mx-4 text-[10px] font-bold uppercase tracking-widest text-gray-300">Or</span>
-             <div class="flex-grow border-t border-gray-200"></div>
+            <div class="flex-grow border-t border-gray-200"></div>
+            <span class="flex-shrink-0 mx-4 text-[10px] font-bold uppercase tracking-widest text-gray-300">Or</span>
+            <div class="flex-grow border-t border-gray-200"></div>
           </div>
 
           <button
@@ -162,27 +175,27 @@ const handleGoogleLogin = async () => {
             @click="handleGoogleLogin"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+              <path
+                d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
+              />
             </svg>
             <span>Continue with Google</span>
           </button>
 
           <p v-if="authStore.error" class="text-center text-xs font-mono text-red-500 uppercase mt-4">
-             /// Error: {{ authStore.error }}
+            /// Error: {{ authStore.error }}
           </p>
-
         </div>
 
         <div class="p-6 bg-gray-50 border-t border-gray-200 text-center">
-           <button
-              type="button"
-              class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 transition-colors"
-              @click="toggleMode"
-            >
-              {{ toggleLabel }}
-            </button>
+          <button
+            type="button"
+            class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-carrotOrange-600 transition-colors"
+            @click="toggleMode"
+          >
+            {{ toggleLabel }}
+          </button>
         </div>
-
       </div>
     </div>
   </main>

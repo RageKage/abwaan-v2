@@ -29,27 +29,27 @@ export const useSubmissionsStore = defineStore('submissions', () => {
   }
 
   const loadLatest = async (
-    type?: SubmissionType, 
+    type?: SubmissionType,
     loadMore = false,
     sortBy: 'createdAt' | 'voteScore' = 'createdAt',
-    language?: string
+    language?: string,
   ) => {
     if (!loadMore) {
       busy.value = true
       items.value = []
       lastDoc.value = null
     }
-    
+
     error.value = null
     try {
-      const { items: newItems, lastDoc: newLastDoc } = await listSubmissions({ 
-        type, 
+      const { items: newItems, lastDoc: newLastDoc } = await listSubmissions({
+        type,
         language,
         sortBy,
         limit: 12,
-        lastDoc: loadMore ? lastDoc.value : null 
+        lastDoc: loadMore ? lastDoc.value : null,
       })
-      
+
       if (loadMore) {
         items.value = [...items.value, ...newItems]
       } else {
@@ -141,9 +141,7 @@ export const useSubmissionsStore = defineStore('submissions', () => {
       if (selected.value?.id === id) {
         selected.value = { ...selected.value, ...patchWithTimestamp }
       }
-      items.value = items.value.map((item) =>
-        item.id === id ? { ...item, ...patchWithTimestamp } : item,
-      )
+      items.value = items.value.map((item) => (item.id === id ? { ...item, ...patchWithTimestamp } : item))
     } catch (err) {
       setError(err, 'Failed to update submission')
       throw err
@@ -152,65 +150,64 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     }
   }
 
-const vote = async (submissionId: string, intendedValue: 1 | -1) => {
-  // 1. Check Auth
-  const authStore = useAuthStore()
-  if (!authStore.user) return
+  const vote = async (submissionId: string, intendedValue: 1 | -1) => {
+    // 1. Check Auth
+    const authStore = useAuthStore()
+    if (!authStore.user) return
 
-  // 2. Get Current State (Use .value)
-  const currentVote = userVote.value ?? 0
-  let finalValue: 0 | 1 | -1 = 0
+    // 2. Get Current State (Use .value)
+    const currentVote = userVote.value ?? 0
+    let finalValue: 0 | 1 | -1 = 0
 
-  // 3. Determine New Vote (Toggle Logic)
-  if (currentVote === intendedValue) {
-    finalValue = 0 // Toggle Off (Remove Vote)
-  } else {
-    finalValue = intendedValue // New Vote or Switch
-  }
+    // 3. Determine New Vote (Toggle Logic)
+    if (currentVote === intendedValue) {
+      finalValue = 0 // Toggle Off (Remove Vote)
+    } else {
+      finalValue = intendedValue // New Vote or Switch
+    }
 
-  // 4. Optimistic UI Update
-  if (selected.value && selected.value.id === submissionId) {
-
-    // A. Remove the OLD vote from the counters
-    if (currentVote === 1) selected.value.voteUp--
-    if (currentVote === -1) selected.value.voteDown--
-
-    // B. Add the NEW vote to the counters
-    if (finalValue === 1) selected.value.voteUp++
-    if (finalValue === -1) selected.value.voteDown++
-
-    // C. Update the Total Score
-    // Calculate difference (e.g., switching -1 to 1 is a +2 difference)
-    const difference = finalValue - currentVote
-    selected.value.voteScore += difference
-  }
-
-  // 5. Update User State (Crucial: Fixes button color)
-  userVote.value = finalValue
-
-  // 6. API Call
-  try {
-    await voteSubmission(submissionId, finalValue)
-  } catch {
-    // Rollback changes if server fails
-    toastError('Vote failed')
-
-    // Revert user state
-    userVote.value = currentVote as 0 | 1 | -1
-
-    // Revert counters/score (Simplified rollback)
+    // 4. Optimistic UI Update
     if (selected.value && selected.value.id === submissionId) {
-       const revertDiff = currentVote - finalValue
-       selected.value.voteScore += revertDiff
+      // A. Remove the OLD vote from the counters
+      if (currentVote === 1) selected.value.voteUp--
+      if (currentVote === -1) selected.value.voteDown--
 
-       // Revert counters logic (inverse of above)
-       if (finalValue === 1) selected.value.voteUp--
-       if (finalValue === -1) selected.value.voteDown--
-       if (currentVote === 1) selected.value.voteUp++
-       if (currentVote === -1) selected.value.voteDown++
+      // B. Add the NEW vote to the counters
+      if (finalValue === 1) selected.value.voteUp++
+      if (finalValue === -1) selected.value.voteDown++
+
+      // C. Update the Total Score
+      // Calculate difference (e.g., switching -1 to 1 is a +2 difference)
+      const difference = finalValue - currentVote
+      selected.value.voteScore += difference
+    }
+
+    // 5. Update User State (Crucial: Fixes button color)
+    userVote.value = finalValue
+
+    // 6. API Call
+    try {
+      await voteSubmission(submissionId, finalValue)
+    } catch {
+      // Rollback changes if server fails
+      toastError('Vote failed')
+
+      // Revert user state
+      userVote.value = currentVote as 0 | 1 | -1
+
+      // Revert counters/score (Simplified rollback)
+      if (selected.value && selected.value.id === submissionId) {
+        const revertDiff = currentVote - finalValue
+        selected.value.voteScore += revertDiff
+
+        // Revert counters logic (inverse of above)
+        if (finalValue === 1) selected.value.voteUp--
+        if (finalValue === -1) selected.value.voteDown--
+        if (currentVote === 1) selected.value.voteUp++
+        if (currentVote === -1) selected.value.voteDown++
+      }
     }
   }
-}
 
   const _delete = async (id: string) => {
     busy.value = true

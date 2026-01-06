@@ -251,10 +251,7 @@ onMounted(() => {
         <div class="bg-white">
           <LoadMore :has-more="!!profileStore.lastDoc" :loading="isLoadingMore" @load-more="handleLoadMore" />
 
-          <div
-            v-if="!profileStore.busy && !profileStore.lastDoc"
-            class="py-[32px] flex justify-center opacity-40"
-          >
+          <div v-if="!profileStore.busy && !profileStore.lastDoc" class="py-[32px] flex justify-center opacity-40">
             <div class="flex items-center gap-4 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
               <span class="h-px w-8 bg-gray-300"></span>
               <span>End of Archive</span>

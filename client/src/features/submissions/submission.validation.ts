@@ -24,7 +24,6 @@ const MIN_TITLE = 3
 
 const isValidUrl = (value: string) => {
   try {
-     
     new URL(value)
     return true
   } catch {

@@ -80,8 +80,9 @@ watch(
 </script>
 
 <template>
-  <main     class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24   font-sans text-gray-900 transition-all duration-300"
->
+  <main
+    class="relative w-full min-h-screen bg-gray-50 dot-pattern pt-24 font-sans text-gray-900 transition-all duration-300"
+  >
     <div v-if="isLoading" class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">
       <div class="flex flex-col items-center gap-6">
         <div class="h-12 w-12 animate-spin rounded-full border-2 border-gray-200 border-t-carrotOrange-500"></div>

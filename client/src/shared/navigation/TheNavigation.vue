@@ -6,11 +6,7 @@ import { useProfileStore } from '@/features/profile/profile.store'
 import DesktopNav from '@/shared/navigation/DesktopNav.vue'
 import MobileNav from '@/shared/navigation/MobileNav.vue'
 import SiteLogo from '@/shared/navigation/SiteLogo.vue'
-import {
-  mainRoutes,
-  userDropdownRoutes,
-  type UserRouteAction,
-} from '@/shared/navigation/useNavigation'
+import { mainRoutes, userDropdownRoutes, type UserRouteAction } from '@/shared/navigation/useNavigation'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -35,8 +31,12 @@ const navUser = computed(() => {
   }
 })
 
-const openMobileMenu = () => { isMobileMenuOpen.value = true }
-const closeMobileMenu = () => { isMobileMenuOpen.value = false }
+const openMobileMenu = () => {
+  isMobileMenuOpen.value = true
+}
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
 
 const handleUserAction = async (action: UserRouteAction) => {
   closeMobileMenu()
@@ -98,10 +98,8 @@ watch(isMobileMenuOpen, (isOpen) => {
   >
     <div class="mx-auto max-w-[1600px] h-20 md:h-24">
       <div class="h-full w-full">
-
         <div class="flex items-center justify-between h-full">
-
-          <div class="lg:hidden flex items-center justify-between w-full px-6 border-r border-gray-200 h-full">
+          <div class="md:hidden flex items-center justify-between w-full px-6 border-r border-gray-200 h-full">
             <SiteLogo />
             <button
               type="button"
@@ -117,7 +115,7 @@ watch(isMobileMenuOpen, (isOpen) => {
             </button>
           </div>
 
-          <div class="hidden lg:flex w-full h-full">
+          <div class="hidden md:flex w-full h-full">
             <DesktopNav
               :routes="mainRoutes"
               :user-routes="userDropdownRoutes"
@@ -125,7 +123,6 @@ watch(isMobileMenuOpen, (isOpen) => {
               @trigger-action="handleUserAction"
             />
           </div>
-
         </div>
       </div>
     </div>

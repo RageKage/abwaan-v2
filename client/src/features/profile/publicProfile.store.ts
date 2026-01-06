@@ -59,11 +59,7 @@ export const usePublicProfileStore = defineStore('publicProfile', () => {
     if (!activeUid || !lastDoc.value) return
     loadingMore.value = true
     try {
-      const { items, lastDoc: newLastDoc } = await listSubmissionsByAuthor(
-        activeUid,
-        12,
-        lastDoc.value,
-      )
+      const { items, lastDoc: newLastDoc } = await listSubmissionsByAuthor(activeUid, 12, lastDoc.value)
       submissions.value = [...submissions.value, ...items]
       lastDoc.value = newLastDoc
     } catch (err) {

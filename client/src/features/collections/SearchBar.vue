@@ -23,9 +23,12 @@ const handleInput = (event: Event) => {
   }, 500)
 }
 
-watch(() => props.modelValue, (newValue) => {
-  if (newValue !== inputValue.value) inputValue.value = newValue
-})
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue !== inputValue.value) inputValue.value = newValue
+  },
+)
 </script>
 
 <template>
@@ -37,10 +40,12 @@ watch(() => props.modelValue, (newValue) => {
       class="block w-full bg-transparent py-4 text-xl md:text-2xl font-serif text-gray-900 placeholder:text-gray-300 border-b-2 border-gray-200 focus:border-carrotOrange-500 focus:outline-none transition-colors duration-300"
       @input="handleInput"
     />
-    <div class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-carrotOrange-500 transition-colors">
-       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-       </svg>
+    <div
+      class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-carrotOrange-500 transition-colors"
+    >
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
     </div>
   </div>
 </template>

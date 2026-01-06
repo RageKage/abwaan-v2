@@ -53,11 +53,9 @@ const handleAction = (action: UserRouteAction) => {
 
 <template>
   <nav class="flex items-stretch justify-between w-full h-full">
-
     <div class="flex items-stretch h-full flex-1">
-
       <div class="flex-shrink-0 flex items-center border-r border-gray-200 bg-white hover:bg-gray-50 transition-colors">
-         <SiteLogo />
+        <SiteLogo />
       </div>
 
       <div class="flex items-stretch h-full">
@@ -68,15 +66,21 @@ const handleAction = (action: UserRouteAction) => {
           class="relative group flex items-center justify-center px-10 border-r border-gray-200 h-full min-w-[140px] hover:bg-gray-50 transition-all duration-300"
           active-class="bg-gray-50"
         >
-          <span class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 group-hover:text-carrotOrange-600 transition-colors relative z-10">
+          <span
+            class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 group-hover:text-carrotOrange-600 transition-colors relative z-10"
+          >
             {{ route.label }}
           </span>
 
-          <span class="absolute top-3 right-3 text-[9px] font-mono text-gray-300 group-hover:text-carrotOrange-300 transition-colors">
+          <span
+            class="absolute top-3 right-3 text-[9px] font-mono text-gray-300 group-hover:text-carrotOrange-300 transition-colors"
+          >
             0{{ index + 1 }}
           </span>
 
-          <span class="absolute bottom-0 left-0 w-full h-[2px] bg-carrotOrange-500 transform scale-x-0 group-[.router-link-active]:scale-x-100 transition-transform duration-300"></span>
+          <span
+            class="absolute bottom-0 left-0 w-full h-[2px] bg-carrotOrange-500 transform scale-x-0 group-[.router-link-active]:scale-x-100 transition-transform duration-300"
+          ></span>
         </router-link>
       </div>
     </div>
