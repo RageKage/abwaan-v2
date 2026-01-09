@@ -9,6 +9,7 @@ import {
   query,
   setDoc,
   startAfter,
+  type QueryConstraint,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/data/firebase/client'
@@ -48,20 +49,20 @@ export const listFavoriteSubmissions = async ({
   limit?: number
   lastDoc?: QueryDocumentSnapshot | null
 }): Promise<{ items: Submission[]; lastDoc: QueryDocumentSnapshot | null }> => {
-  const constraints = [orderBy('savedAt', 'desc'), limitResults(limit)]
+  const constraints: QueryConstraint[] = [orderBy('savedAt', 'desc'), limitResults(limit)]
   if (lastDoc) {
     constraints.push(startAfter(lastDoc))
   }
 
   const favoritesQuery = query(favoritesCollection(uid), ...constraints)
   const snapshot = await getDocs(favoritesQuery)
-  const favorites = snapshot.docs.map(
-    (docSnap) =>
-      ({
-        submissionId: docSnap.id,
-        ...(docSnap.data() as FavoriteRecord),
-      }) satisfies FavoriteRecord,
-  )
+  const favorites = snapshot.docs.map((docSnap) => {
+    const data = docSnap.data() as FavoriteRecord
+    return {
+      ...data,
+      submissionId: data.submissionId ?? docSnap.id,
+    } satisfies FavoriteRecord
+  })
 
   const submissions = await Promise.all(
     favorites.map(async (favorite) => {

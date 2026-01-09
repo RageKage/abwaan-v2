@@ -1,68 +1,33 @@
-import Swal from 'sweetalert2'
 import { toast } from 'vue-sonner'
+import { useDialog } from './useDialog'
 
-// Base configuration to match the site's theme (for Modals/Dialogs)
-const baseConfig = Swal.mixin({
-  customClass: {
-    popup: 'rounded-[2rem] border border-gray-100 shadow-xl font-sans',
-    title: 'text-2xl font-bold text-gray-900 font-Kalam',
-    htmlContainer: 'text-gray-600',
-    confirmButton: 'rounded-full px-6 py-2.5 text-sm font-bold shadow-md transition-all',
-    cancelButton: 'rounded-full px-6 py-2.5 text-sm font-bold shadow-md transition-all',
-  },
-  buttonsStyling: false,
-})
-
-// Toast Notifications using Vue Sonner
+// Toast Notifications (Keep Vue Sonner, it's great)
 export const toastSuccess = (title: string) => {
-  toast.success(title, {
-    duration: 3000,
-  })
+  toast.success(title, { duration: 3000 })
 }
 
 export const toastError = (title: string) => {
-  toast.error(title, {
-    duration: 4000,
+  toast.error(title, { duration: 4000 })
+}
+
+// Dialogs - Now using our custom "GlobalDialog" component
+const dialog = useDialog()
+
+export const confirmAction = async (title: string, text: string, confirmButtonText = 'CONFIRM'): Promise<boolean> => {
+  // Triggers the global component to open
+  return await dialog.open(title, text, {
+    confirmText: confirmButtonText,
+    cancelText: 'CANCEL',
+    type: 'warning',
   })
 }
 
-// Dialogs (Confirmations/Alerts) using SweetAlert2
-export const confirmAction = async (
-  title: string,
-  text: string,
-  confirmButtonText = 'Yes, do it',
-): Promise<boolean> => {
-  const result = await baseConfig.fire({
-    title,
-    text,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText,
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#eb932e', // carrotOrange-500
-    cancelButtonColor: '#d84c1e', // redDamask-600
-    customClass: {
-      popup: 'rounded-[2rem] border border-gray-100 shadow-xl font-sans',
-      title: 'text-2xl font-bold text-gray-900 font-Kalam',
-      htmlContainer: 'text-gray-600',
-      confirmButton: 'bg-carrotOrange-500 text-white hover:bg-carrotOrange-600 rounded-full px-6 py-3 mx-2',
-      cancelButton: 'bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full px-6 py-3 mx-2',
-    },
-  })
-  return result.isConfirmed
-}
-
-export const showAlert = (title: string, text: string, icon: 'success' | 'error' | 'info' | 'warning' = 'info') => {
-  return baseConfig.fire({
-    title,
-    text,
-    icon,
-    confirmButtonText: 'Okay',
-    customClass: {
-      popup: 'rounded-[2rem] border border-gray-100 shadow-xl font-sans',
-      title: 'text-2xl font-bold text-gray-900 font-Kalam',
-      htmlContainer: 'text-gray-600',
-      confirmButton: 'bg-carrotOrange-500 text-white hover:bg-carrotOrange-600 rounded-full px-6 py-3 mx-2',
-    },
+export const showAlert = async (title: string, text: string) => {
+  // Reusing the same structure but maybe with just one button if you extended the composable
+  // For now, confirmAction works as a generic modal
+  return await dialog.open(title, text, {
+    confirmText: 'OKAY',
+    cancelText: 'CLOSE',
+    type: 'info',
   })
 }

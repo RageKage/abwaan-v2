@@ -85,6 +85,11 @@ const normalizeSource = (source?: NewSubmissionInput['source']): SubmissionSourc
   }
 }
 
+const SEARCH_KEYWORD_LIMIT = 60
+const SEARCH_SOURCE_LIMIT = 600
+const SEARCH_TOKEN_MIN = 2
+const SEARCH_TOKEN_MAX = 24
+
 export const buildSubmissionSearchFields = ({
   type,
   title,
@@ -104,15 +109,30 @@ export const buildSubmissionSearchFields = ({
   const normalizedType = type.trim()
 
   const searchIndex = (normalizedType === 'Poetry' ? normalizedTitle : normalizedText).toLowerCase()
-  const searchKeywords = [
-    ...new Set([
-      ...normalizedTitle.toLowerCase().split(/\s+/).filter(Boolean),
-      ...normalizedText.toLowerCase().split(/\s+/).filter(Boolean),
-      ...normalizedMeaning.toLowerCase().split(/\s+/).filter(Boolean),
-      ...(username ? [username.toLowerCase()] : []),
-      normalizedType.toLowerCase(),
-    ]),
+
+  const tokenize = (value: string) =>
+    value
+      .slice(0, SEARCH_SOURCE_LIMIT)
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((token) => token.length >= SEARCH_TOKEN_MIN && token.length <= SEARCH_TOKEN_MAX)
+
+  const tokens = [
+    normalizedType.toLowerCase(),
+    ...(username ? [username.toLowerCase()] : []),
+    ...tokenize(normalizedTitle),
+    ...tokenize(normalizedText),
+    ...tokenize(normalizedMeaning),
   ]
+
+  const searchKeywords: string[] = []
+  const seen = new Set<string>()
+  for (const token of tokens) {
+    if (seen.has(token)) continue
+    seen.add(token)
+    searchKeywords.push(token)
+    if (searchKeywords.length >= SEARCH_KEYWORD_LIMIT) break
+  }
 
   return { searchIndex, searchKeywords }
 }

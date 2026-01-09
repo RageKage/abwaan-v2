@@ -89,6 +89,45 @@ export const onSubmissionDelete = firestore
     );
   });
 
+// Firestore trigger: auto-move submissions to pending after 3 distinct reports
+export const onReportCreate = firestore
+  .document("reports/{id}")
+  .onCreate(async (snapshot) => {
+    const data = snapshot.data();
+    const submissionId = data?.submissionId as string | undefined;
+    if (!submissionId) return;
+
+    const reportsSnap = await db
+      .collection("reports")
+      .where("submissionId", "==", submissionId)
+      .get();
+
+    const reporterUids = new Set<string>();
+    reportsSnap.forEach((docSnap) => {
+      const reporterUid = docSnap.data()?.reporterUid as string | undefined;
+      if (reporterUid) reporterUids.add(reporterUid);
+    });
+
+    if (reporterUids.size < 3) return;
+
+    const submissionRef = db.collection("submissions").doc(submissionId);
+    const submissionSnap = await submissionRef.get();
+    if (!submissionSnap.exists) return;
+
+    const status = submissionSnap.data()?.status;
+    if (status !== "published") return;
+
+    await submissionRef.set(
+      {
+        status: "pending",
+        statusChangedAt: Date.now(),
+        statusChangedBy: "system",
+        statusReason: "auto-report-threshold",
+      },
+      {merge: true}
+    );
+  });
+
 // Callable (v2): claim username atomically
 export const claimUsername = onCall<{username?: string}>(async (request) => {
   const uid = request.auth?.uid;

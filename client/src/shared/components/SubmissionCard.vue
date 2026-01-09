@@ -73,12 +73,7 @@ const handleCardKeydown = (event: KeyboardEvent) => {
     <div
       class="mt-auto pt-6 border-t border-gray-100 flex items-center justify-between group-hover:border-gray-200 transition-colors"
     >
-      <router-link
-        :to="`/p/${props.submission.uid}`"
-        class="flex items-center gap-3"
-        @click.stop
-        @keydown.stop
-      >
+      <router-link :to="`/p/${props.submission.uid}`" class="flex items-center gap-3" @click.stop @keydown.stop>
         <div
           class="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500 group-hover:bg-carrotOrange-500 group-hover:text-white group-hover:border-carrotOrange-500 transition-colors"
         >

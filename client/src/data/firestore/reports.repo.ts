@@ -47,10 +47,7 @@ export const createReport = async ({
   return { id: docRef.id, ...payload }
 }
 
-export const listReports = async (
-  status: ReportStatus = 'open',
-  limit = 25,
-): Promise<Report[]> => {
+export const listReports = async (status: ReportStatus = 'open', limit = 25): Promise<Report[]> => {
   const constraints: QueryConstraint[] = [where('status', '==', status), orderBy('createdAt', 'desc')]
   if (limit) {
     constraints.push(limitResults(limit))
@@ -60,15 +57,36 @@ export const listReports = async (
   return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as Omit<Report, 'id'>) }))
 }
 
-export const updateReportStatus = async (
-  id: string,
-  status: ReportStatus,
-  actorUid: string,
-): Promise<void> => {
+export const updateReportStatus = async (id: string, status: ReportStatus, actorUid: string): Promise<void> => {
   const reportRef = doc(db, 'reports', id)
   await updateDoc(reportRef, {
     status,
     reviewedAt: Date.now(),
     reviewedBy: actorUid,
   })
+}
+
+export const countOpenReportsBySubmissionIds = async (submissionIds: string[]): Promise<Record<string, number>> => {
+  const uniqueIds = Array.from(new Set(submissionIds)).filter(Boolean)
+  if (uniqueIds.length === 0) return {}
+
+  const counts: Record<string, number> = {}
+  const batchSize = 10
+
+  for (let index = 0; index < uniqueIds.length; index += batchSize) {
+    const batch = uniqueIds.slice(index, index + batchSize)
+    const reportsQuery = query(
+      collection(db, 'reports'),
+      where('status', '==', 'open'),
+      where('submissionId', 'in', batch),
+    )
+    const snapshot = await getDocs(reportsQuery)
+    snapshot.docs.forEach((docSnap) => {
+      const data = docSnap.data() as Report
+      if (!data.submissionId) return
+      counts[data.submissionId] = (counts[data.submissionId] ?? 0) + 1
+    })
+  }
+
+  return counts
 }

@@ -68,7 +68,7 @@ const appVersion = __APP_VERSION__
   >
     <div v-if="isOpen" class="fixed inset-0 z-[100] flex flex-col bg-white text-gray-900 font-sans">
       <header class="flex-shrink-0 h-20 flex items-center justify-between border-b border-gray-200 bg-white">
-        <div class="h-full flex items-center pr-6  border-gray-200">
+        <div class="h-full flex items-center pr-6 border-gray-200">
           <SiteLogo @click="handleClose" />
         </div>
 

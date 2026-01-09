@@ -39,20 +39,20 @@ watch(
       </div>
     </div>
 
-    <div
-      v-else-if="error || !profile"
-      class="flex h-[80vh] items-center justify-center text-center border-t border-b border-gray-200"
-    >
-      <div class="max-w-md p-12 border border-gray-200 bg-gray-50">
-        <h2 class="text-3xl font-serif text-gray-900 mb-4">Member Not Found</h2>
-        <p class="text-gray-500 mb-8 font-light">The contributor record you are looking for does not exist.</p>
-        <router-link
-          to="/collections"
-          class="px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors"
-        >
-          Return to Archive
-        </router-link>
-      </div>
+    <div v-else-if="error || !profile">
+      <EmptyState
+        eyebrow="Contributor"
+        title="Member Not Found"
+        :description="
+          error
+            ? 'We could not load this profile right now.'
+            : 'The contributor record you are looking for does not exist.'
+        "
+        primary-label="Return to Archive"
+        primary-to="/collections"
+        secondary-label="Return Home"
+        secondary-to="/"
+      />
     </div>
 
     <div v-else class="max-w-[1600px] mx-auto border-l border-r border-gray-200">

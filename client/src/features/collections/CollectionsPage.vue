@@ -47,6 +47,7 @@ const hasFilters = computed(
 )
 const contentState = computed(() => {
   if (submissionsStore.busy) return 'loading'
+  if (submissionsStore.error) return 'error'
   if (submissionsStore.items.length === 0) return 'empty'
   return 'grid'
 })
@@ -58,6 +59,14 @@ const loadLatest = async () => {
 
 const handleSearch = async () => {
   await submissionsStore.search(searchTerm.value)
+}
+
+const handleRetry = async () => {
+  if (hasSearch.value) {
+    await handleSearch()
+    return
+  }
+  await loadLatest()
 }
 
 const handleResetFilters = () => {
@@ -109,6 +118,16 @@ const emptySecondaryAction = computed(() => {
   if (hasSearch.value && hasFilters.value) return handleResetFilters
   return undefined
 })
+
+const errorTitle = computed(() => (hasSearch.value ? 'Search unavailable' : 'Archive unavailable'))
+const errorDescription = computed(() =>
+  hasSearch.value
+    ? 'Search is temporarily unavailable. Please try again.'
+    : 'We could not load the archive right now. Please try again.',
+)
+const errorEyebrow = computed(() => (hasSearch.value ? 'Search' : 'Archive'))
+const errorSecondaryLabel = computed(() => (hasSearch.value ? 'Clear search' : undefined))
+const errorSecondaryAction = computed(() => (hasSearch.value ? handleClearSearch : undefined))
 
 const handleLoadMore = async () => {
   isLoadingMore.value = true
@@ -216,7 +235,7 @@ watch(searchTerm, (newTerm) => {
 
         <div class="lg:col-span-3 flex bg-white">
           <div
-            class="flex-1 h-16 border-r lg:border-l border-gray-200 relative group hover:bg-gray-50 transition-colors"
+            class="flex-1 h-16 border-r lg:border-l border-gray-200 relative group hover:bg-gray-50 transition-colors z-10"
           >
             <BaseDropdown
               v-model="activeLanguage"
@@ -227,7 +246,12 @@ watch(searchTerm, (newTerm) => {
           </div>
 
           <div class="flex-1 h-16 relative group hover:bg-gray-50 transition-colors">
-            <BaseDropdown v-model="sortBy" :options="sortOptions" label="Sort" class="w-full h-full justify-center" />
+            <BaseDropdown
+              v-model="sortBy"
+              :options="sortOptions"
+              label="Sort"
+              class="w-full h-full justify-center z-10"
+            />
           </div>
         </div>
       </div>
@@ -247,6 +271,18 @@ watch(searchTerm, (newTerm) => {
           <div class="h-4 w-full bg-gray-50 rounded mb-2"></div>
           <div class="h-4 w-2/3 bg-gray-50 rounded"></div>
         </div>
+      </div>
+
+      <div v-else-if="contentState === 'error'">
+        <EmptyState
+          :eyebrow="errorEyebrow"
+          :title="errorTitle"
+          :description="errorDescription"
+          primary-label="Try Again"
+          :primary-action="handleRetry"
+          :secondary-label="errorSecondaryLabel"
+          :secondary-action="errorSecondaryAction"
+        />
       </div>
 
       <div v-else-if="contentState === 'empty'">

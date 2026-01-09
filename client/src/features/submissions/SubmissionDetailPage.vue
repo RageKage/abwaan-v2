@@ -8,6 +8,7 @@ import { useFavoritesStore } from '@/features/favorites/favorites.store'
 import { createReport } from '@/data/firestore/reports.repo'
 import type { ReportReason } from '@/data/models/report'
 import type { LanguageCode, Submission, SubmissionOrigin, SubmissionType } from '@/data/models/submission'
+import type { Comment } from '@/data/models/comment'
 import {
   validateSubmissionDraft,
   type OriginType,
@@ -20,17 +21,22 @@ import {
   formatSubmissionDate,
 } from '@/shared/utils/submissions'
 import { confirmAction, toastError, toastSuccess } from '@/shared/utils/alerts'
+import EmptyState from '@/shared/components/EmptyState.vue'
+import { useCommentsStore } from '@/features/submissions/comments.store'
+import CommentForm from '@/features/submissions/CommentForm.vue'
+import CommentList from '@/features/submissions/CommentList.vue'
 const route = useRoute()
 const router = useRouter()
 const submissionsStore = useSubmissionsStore()
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
 const favoritesStore = useFavoritesStore()
+const commentsStore = useCommentsStore()
 
 const submission = computed(() => submissionsStore.selected)
 const userVote = computed(() => submissionsStore.userVote)
 const isLoading = computed(() => submissionsStore.busy)
-const error = computed(() => submissionsStore.error)
+const loadError = ref<string | null>(null)
 
 const authorName = computed(() => (submission.value ? getAuthorName(submission.value) : null))
 const username = computed(() => (submission.value ? getAuthorUsername(submission.value) : null))
@@ -42,6 +48,20 @@ const isAuthor = computed(() => {
 const isGuest = computed(() => !authStore.user)
 const isAdmin = computed(() => profileStore.profile?.isAdmin === true)
 const isFavorited = computed(() => (submission.value ? favoritesStore.isFavorited(submission.value.id) : false))
+const commentBody = ref('')
+const commentError = ref<string | null>(null)
+const commentsLoadingMore = ref(false)
+const canPostComment = computed(
+  () =>
+    !isGuest.value &&
+    commentBody.value.trim().length > 0 &&
+    commentBody.value.trim().length <= 2000 &&
+    !commentsStore.saving,
+)
+const commentCountLabel = computed(() => {
+  const count = commentsStore.items.length
+  return `${count} Comment${count === 1 ? '' : 's'}`
+})
 
 const showReportModal = ref(false)
 const reportReason = ref<ReportReason>('spam')
@@ -196,13 +216,28 @@ const handleVote = (intendedValue: 1 | -1) => {
 
 const loadSubmission = async () => {
   const id = route.params.id
-  if (typeof id === 'string') {
-    isEditing.value = false
-    showEditErrors.value = false
-    await submissionsStore.loadById(id)
-    if (authStore.user) {
-      await favoritesStore.ensureFavoriteStatus(id)
-    }
+  if (typeof id !== 'string') {
+    loadError.value = 'This link is invalid.'
+    return
+  }
+
+  isEditing.value = false
+  showEditErrors.value = false
+  loadError.value = null
+  commentBody.value = ''
+  commentError.value = null
+  await submissionsStore.loadById(id)
+  if (submissionsStore.error) {
+    loadError.value = 'We could not load this record. It may be private or missing.'
+    return
+  }
+  if (!submissionsStore.selected) {
+    loadError.value = 'Record not found.'
+    return
+  }
+  await commentsStore.load(id)
+  if (authStore.user) {
+    await favoritesStore.ensureFavoriteStatus(id)
   }
 }
 
@@ -312,6 +347,48 @@ const saveEdit = async () => {
   }
 }
 
+const submitComment = async () => {
+  if (!submission.value) return
+  const body = commentBody.value.trim()
+  if (!body) return
+  commentError.value = null
+  try {
+    await commentsStore.add(submission.value.id, body)
+    commentBody.value = ''
+  } catch {
+    commentError.value = 'Unable to post comment.'
+  }
+}
+
+const loadMoreComments = async () => {
+  if (!submission.value) return
+  if (commentsLoadingMore.value) return
+  commentsLoadingMore.value = true
+  await commentsStore.load(submission.value.id, true)
+  commentsLoadingMore.value = false
+}
+
+const reloadComments = async () => {
+  if (!submission.value) return
+  await commentsStore.load(submission.value.id, false)
+}
+
+const canDeleteComment = (comment: Comment) => {
+  return isAdmin.value || (!!authStore.user && comment.uid === authStore.user.uid)
+}
+
+const handleDeleteComment = async (comment: Comment) => {
+  if (!submission.value) return
+  const confirmed = await confirmAction('Delete comment?', 'This cannot be undone.')
+  if (!confirmed) return
+  try {
+    await commentsStore.remove(submission.value.id, comment.id)
+    toastSuccess('Comment deleted')
+  } catch {
+    toastError('Failed to delete comment')
+  }
+}
+
 const handleModeration = async (nextStatus: 'published' | 'hidden') => {
   if (!submission.value) return
   const actionLabel = nextStatus === 'hidden' ? 'Hide Submission?' : 'Restore Submission?'
@@ -349,20 +426,16 @@ watch(
       </div>
     </div>
 
-    <div
-      v-else-if="error"
-      class="flex h-[80vh] items-center justify-center text-center border-t border-b border-gray-200"
-    >
-      <div class="max-w-md p-12 border border-gray-200 bg-gray-50">
-        <h2 class="text-3xl font-serif text-gray-900 mb-4">Record Unavailable</h2>
-        <p class="text-gray-500 mb-8 font-light">{{ error }}</p>
-        <button
-          @click="loadSubmission"
-          class="px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-carrotOrange-500 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
+    <div v-else-if="loadError">
+      <EmptyState
+        eyebrow="Submission"
+        title="Record Unavailable"
+        :description="loadError"
+        primary-label="Try Again"
+        :primary-action="loadSubmission"
+        secondary-label="Browse Archive"
+        secondary-to="/collections"
+      />
     </div>
 
     <div v-else-if="submission" class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
@@ -415,7 +488,10 @@ watch(
                 </div>
               </div>
 
-              <div v-if="submission.meaning || submission.translation" class="grid gap-12 pt-12 border-t border-gray-200">
+              <div
+                v-if="submission.meaning || submission.translation"
+                class="grid gap-12 pt-12 border-t border-gray-200"
+              >
                 <div v-if="submission.meaning" class="group">
                   <span class="block text-xs font-mono text-gray-400 mb-4">/// INTERPRETATION</span>
                   <p class="text-xl text-gray-800 font-light leading-relaxed">
@@ -438,7 +514,9 @@ watch(
                 </span>
                 <div class="grid gap-2">
                   <p class="text-lg font-serif text-gray-900">{{ submission.source.name }}</p>
-                  <p v-if="submission.source.notes" class="text-sm text-gray-500 italic">{{ submission.source.notes }}</p>
+                  <p v-if="submission.source.notes" class="text-sm text-gray-500 italic">
+                    {{ submission.source.notes }}
+                  </p>
                   <a
                     v-if="submission.source.url"
                     :href="submission.source.url"
@@ -460,7 +538,9 @@ watch(
 
               <div class="grid md:grid-cols-2 gap-8">
                 <div class="group">
-                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Category</label>
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                    Category
+                  </label>
                   <div class="relative">
                     <select
                       v-model="editDraft.type"
@@ -475,13 +555,19 @@ watch(
                       </svg>
                     </div>
                   </div>
-                  <p v-if="showEditErrors && editErrors.type" data-error-for="type" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.type"
+                    data-error-for="type"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.type }}
                   </p>
                 </div>
 
                 <div class="group">
-                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Language</label>
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                    Language
+                  </label>
                   <div class="relative">
                     <select
                       v-model="editDraft.language"
@@ -497,7 +583,11 @@ watch(
                       </svg>
                     </div>
                   </div>
-                  <p v-if="showEditErrors && editErrors.language" data-error-for="language" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.language"
+                    data-error-for="language"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.language }}
                   </p>
                 </div>
@@ -512,7 +602,11 @@ watch(
                     placeholder="Enter title..."
                     class="block w-full bg-transparent border-b-2 border-gray-200 py-4 text-3xl font-serif text-gray-900 placeholder:text-gray-200 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none"
                   />
-                  <p v-if="showEditErrors && editErrors.title" data-error-for="title" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.title"
+                    data-error-for="title"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.title }}
                   </p>
                 </div>
@@ -527,7 +621,11 @@ watch(
                     placeholder="Begin writing here..."
                     class="block w-full resize-y bg-gray-50/30 p-6 text-xl md:text-2xl font-serif text-gray-900 placeholder:text-gray-300 border border-gray-200 focus:border-carrotOrange-500 focus:ring-1 focus:ring-carrotOrange-500 focus:outline-none transition-all leading-loose"
                   ></textarea>
-                  <p v-if="showEditErrors && editErrors.text" data-error-for="text" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.text"
+                    data-error-for="text"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.text }}
                   </p>
                 </div>
@@ -544,7 +642,11 @@ watch(
                     placeholder="Explain the context..."
                     class="block w-full bg-transparent border-b border-gray-200 py-2 text-lg text-gray-700 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors resize-none rounded-none"
                   ></textarea>
-                  <p v-if="showEditErrors && editErrors.meaning" data-error-for="meaning" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.meaning"
+                    data-error-for="meaning"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.meaning }}
                   </p>
                 </div>
@@ -590,7 +692,11 @@ watch(
                       </svg>
                     </div>
                   </div>
-                  <p v-if="showEditErrors && editErrors.origin" data-error-for="origin" class="mt-2 text-xs font-mono text-red-500 uppercase">
+                  <p
+                    v-if="showEditErrors && editErrors.origin"
+                    data-error-for="origin"
+                    class="mt-2 text-xs font-mono text-red-500 uppercase"
+                  >
                     /// Error: {{ editErrors.origin }}
                   </p>
                 </div>
@@ -866,7 +972,55 @@ watch(
           </div>
         </aside>
       </div>
-      <div class="border-gray-200 p-12"></div>
+      <section class="border-t border-gray-200 bg-white">
+        <div class="grid lg:grid-cols-12 min-h-[600px]">
+          <aside class="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 p-8 lg:p-12">
+            <div class="sticky top-12 space-y-8">
+              <div>
+                <h2 class="text-3xl font-serif text-gray-900 leading-tight">Discussion</h2>
+              </div>
+
+              <div class="w-12 h-[1px] bg-carrotOrange-500"></div>
+
+              <div class="pt-8 border-t border-gray-200/50">
+                <span class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  Entries Loaded
+                </span>
+                <p class="font-mono text-3xl text-gray-900">{{ commentsStore.items.length }}</p>
+                <p class="text-[10px] font-mono uppercase tracking-widest text-gray-400 mt-2">
+                  {{ commentCountLabel }}
+                </p>
+              </div>
+            </div>
+          </aside>
+
+          <div class="lg:col-span-8 flex flex-col bg-white">
+            <CommentForm
+              v-model="commentBody"
+              :is-guest="isGuest"
+              :saving="commentsStore.saving"
+              :can-post="canPostComment"
+              :error="commentError"
+              :max-length="2000"
+              @submit="submitComment"
+            />
+
+            <CommentList
+              :comments="commentsStore.items"
+              :loading="commentsStore.loading"
+              :error="commentsStore.error"
+              :can-delete="canDeleteComment"
+              :has-more="!!commentsStore.lastDoc"
+              :loading-more="commentsLoadingMore"
+              :show-end="commentsStore.items.length > 0"
+              end-label="End of Ledger"
+              @retry="reloadComments"
+              @delete="handleDeleteComment"
+              @load-more="loadMoreComments"
+            />
+          </div>
+        </div>
+      </section>
     </div>
 
     <div v-else class="flex h-[80vh] items-center justify-center border-t border-b border-gray-200">

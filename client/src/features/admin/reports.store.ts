@@ -13,7 +13,7 @@ export const useReportsStore = defineStore('reports', () => {
     busy.value = true
     error.value = null
     try {
-      items.value = await listReports(status)
+      items.value = await listReports(status, 0)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load reports'
     } finally {

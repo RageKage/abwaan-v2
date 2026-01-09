@@ -6,6 +6,7 @@ import Lenis from 'lenis' //
 import 'lenis/dist/lenis.css' //
 import TheNavigation from '@/shared/navigation/TheNavigation.vue'
 import LoadingSpinner from '@/shared/components/AppLoader.vue'
+import GlobalDialog from '@/shared/components/GlobalDialog.vue'
 import Footer from '@/shared/navigation/Footer.vue'
 import 'vue-sonner/style.css'
 
@@ -121,6 +122,8 @@ const PageReload = () => {
       <LoadingSpinner v-if="isLoading" class="fixed inset-0 z-[9999]" />
     </transition>
 
+    <GlobalDialog />
+
     <Toaster position="top-center" richColors />
 
     <Footer v-if="showFooter" class="mt-auto"></Footer>
@@ -134,7 +137,8 @@ body {
 }
 
 /* LENIS SMOOTH SCROLL CSS */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 .lenis.lenis-smooth {

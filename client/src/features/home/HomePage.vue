@@ -155,6 +155,20 @@
         </div>
       </div>
     </section>
+    <section
+      v-else-if="showErrorState && !submissionsStore.busy"
+      class="max-w-[1600px] mx-auto border-b border-gray-200"
+    >
+      <EmptyState
+        eyebrow="Latest Entries"
+        title="Unable to load latest entries"
+        :description="loadErrorMessage"
+        primary-label="Try Again"
+        :primary-action="reloadLatest"
+        secondary-label="Browse Archive"
+        secondary-to="/collections"
+      />
+    </section>
     <section v-else-if="!submissionsStore.busy" class="max-w-[1600px] mx-auto border-b border-gray-200">
       <EmptyState
         eyebrow="Latest Entries"
@@ -168,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import EmptyState from '@/shared/components/EmptyState.vue'
@@ -235,10 +249,16 @@ const galleryItems: GalleryItem[] = [
 ]
 
 const currentImage = ref<GalleryItem | null>(null)
+const showErrorState = computed(() => Boolean(submissionsStore.error))
+const loadErrorMessage = 'We could not load the latest entries right now.'
 
 const setRandomImage = () => {
   const randomIndex = Math.floor(Math.random() * galleryItems.length)
   currentImage.value = galleryItems[randomIndex] ?? null
+}
+
+const reloadLatest = async () => {
+  await submissionsStore.loadLatest(undefined, false)
 }
 
 onMounted(async () => {

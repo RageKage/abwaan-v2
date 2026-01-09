@@ -21,12 +21,10 @@ const handleSecondary = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center text-center border-b border-gray-200 bg-white py-24 px-6">
+  <div class="flex flex-col items-center justify-center text-center bg-white py-24 px-6">
     <div class="mb-6 text-gray-300">
       <slot name="icon">
-        <div
-          class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center"
-        >
+        <div class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
           <span class="text-2xl text-gray-400">?</span>
         </div>
       </slot>
