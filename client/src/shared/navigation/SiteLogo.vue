@@ -3,6 +3,8 @@
     <img
       src="@/assets/logo/Abwaan_4.svg"
       alt="Wisdom Weyn Logo"
+      loading="eager"
+      decoding="async"
       class="w-14 h-14 object-contain transition-all duration-500 ease-in-out filter group-hover:scale-110 group-active:scale-95"
     />
   </router-link>

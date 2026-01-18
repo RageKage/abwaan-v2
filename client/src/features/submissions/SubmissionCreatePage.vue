@@ -143,10 +143,11 @@ const handleSubmit = async () => {
 
           <div class="lg:col-span-8 p-10 lg:p-12 bg-white grid md:grid-cols-2 gap-10">
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Category</label>
+              <label for="submission-type" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Category</label>
               <div class="relative">
                 <select
                   v-model="draft.type"
+                  id="submission-type"
                   class="block w-full appearance-none bg-transparent border-b-2 border-gray-200 py-3 text-xl font-serif text-gray-900 focus:border-carrotOrange-500 focus:outline-none transition-colors cursor-pointer rounded-none"
                 >
                   <option value="Proverb">Proverb (Maahmaah)</option>
@@ -168,10 +169,11 @@ const handleSubmit = async () => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Language</label>
+              <label for="submission-language" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">Language</label>
               <div class="relative">
                 <select
                   v-model="draft.language"
+                  id="submission-language"
                   class="block w-full appearance-none bg-transparent border-b-2 border-gray-200 py-3 text-xl font-serif text-gray-900 focus:border-carrotOrange-500 focus:outline-none transition-colors cursor-pointer rounded-none"
                 >
                   <option value="">Select Language</option>
@@ -204,9 +206,10 @@ const handleSubmit = async () => {
 
           <div class="lg:col-span-8 p-10 lg:p-12 bg-white space-y-10">
             <div v-if="isPoetry" class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Title</label>
+              <label for="submission-title" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Title</label>
               <input
                 v-model="draft.title"
+                id="submission-title"
                 type="text"
                 placeholder="Enter title..."
                 class="block w-full bg-transparent border-b-2 border-gray-200 py-4 text-3xl font-serif text-gray-900 placeholder:text-gray-200 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none"
@@ -221,11 +224,13 @@ const handleSubmit = async () => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+              <label for="submission-text" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
                 {{ isPoetry ? 'Verses' : 'Proverb Text' }}
               </label>
               <textarea
+                data-lenis-prevent
                 v-model="draft.text"
+                id="submission-text"
                 rows="8"
                 placeholder="Begin writing here..."
                 class="block w-full resize-y bg-gray-50/30 p-6 text-xl md:text-2xl font-serif text-gray-900 placeholder:text-gray-300 border border-gray-200 focus:border-carrotOrange-500 focus:ring-1 focus:ring-carrotOrange-500 focus:outline-none transition-all leading-loose"
@@ -250,14 +255,16 @@ const handleSubmit = async () => {
 
           <div class="lg:col-span-8 p-10 lg:p-12 bg-white grid gap-10">
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+              <label for="submission-meaning" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
                 Hidden Meaning / Context
               </label>
               <textarea
+                data-lenis-prevent
                 v-model="draft.meaning"
-                rows="3"
+                id="submission-meaning"
+                rows="6"
                 placeholder="Explain the context..."
-                class="block w-full bg-transparent border-b border-gray-200 py-2 text-lg text-gray-700 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors resize-none rounded-none"
+                class="block w-full resize-y bg-gray-50/30 p-6 text-lg md:text-xl text-gray-900 placeholder:text-gray-300 border border-gray-200 focus:border-carrotOrange-500 focus:ring-1 focus:ring-carrotOrange-500 focus:outline-none transition-all leading-relaxed"
               ></textarea>
               <p
                 v-if="showErrors && errors.meaning"
@@ -269,14 +276,16 @@ const handleSubmit = async () => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+              <label for="submission-translation" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
                 English Translation
               </label>
               <textarea
+                data-lenis-prevent
                 v-model="draft.translation"
-                rows="3"
+                id="submission-translation"
+                rows="6"
                 placeholder="Literal translation..."
-                class="block w-full bg-transparent border-b border-gray-200 py-2 text-lg text-gray-700 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors resize-none rounded-none"
+                class="block w-full resize-y bg-gray-50/30 p-6 text-lg md:text-xl text-gray-900 placeholder:text-gray-300 border border-gray-200 focus:border-carrotOrange-500 focus:ring-1 focus:ring-carrotOrange-500 focus:outline-none transition-all leading-relaxed"
               ></textarea>
               <p
                 v-if="showErrors && errors.translation"
@@ -300,12 +309,13 @@ const handleSubmit = async () => {
 
           <div class="lg:col-span-8 p-10 lg:p-12 bg-white">
             <div class="group max-w-sm mb-8">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+              <label for="submission-origin" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
                 Origin Type
               </label>
               <div class="relative">
                 <select
                   v-model="draft.origin"
+                  id="submission-origin"
                   class="block w-full appearance-none bg-transparent border-b-2 border-gray-200 py-3 text-xl font-serif text-gray-900 focus:border-carrotOrange-500 focus:outline-none transition-colors cursor-pointer rounded-none"
                 >
                   <option value="">Select Origin</option>
@@ -338,11 +348,12 @@ const handleSubmit = async () => {
             >
               <div v-if="showSource" class="grid md:grid-cols-2 gap-8 pt-8 border-t border-gray-200">
                 <div class="group">
-                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  <label for="submission-source-name" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                     Original Author Name
                   </label>
                   <input
                     v-model="draft.source.name"
+                    id="submission-source-name"
                     type="text"
                     class="block w-full bg-gray-50 border border-gray-200 p-3 text-sm focus:border-carrotOrange-500 focus:outline-none"
                   />
@@ -356,11 +367,12 @@ const handleSubmit = async () => {
                 </div>
 
                 <div class="group">
-                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  <label for="submission-source-url" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                     Reference URL
                   </label>
                   <input
                     v-model="draft.source.url"
+                    id="submission-source-url"
                     type="url"
                     class="block w-full bg-gray-50 border border-gray-200 p-3 text-sm focus:border-carrotOrange-500 focus:outline-none"
                   />
@@ -374,13 +386,15 @@ const handleSubmit = async () => {
                 </div>
 
                 <div class="group md:col-span-2">
-                  <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  <label for="submission-source-notes" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                     Additional Notes
                   </label>
                   <textarea
+                    data-lenis-prevent
                     v-model="draft.source.notes"
-                    rows="2"
-                    class="block w-full bg-gray-50 border border-gray-200 p-3 text-sm focus:border-carrotOrange-500 focus:outline-none resize-none"
+                    id="submission-source-notes"
+                    rows="4"
+                    class="block w-full resize-y bg-gray-50/30 p-6 text-base text-gray-900 placeholder:text-gray-300 border border-gray-200 focus:border-carrotOrange-500 focus:ring-1 focus:ring-carrotOrange-500 focus:outline-none transition-all leading-relaxed"
                   ></textarea>
                   <p
                     v-if="showErrors && errors['source.notes']"

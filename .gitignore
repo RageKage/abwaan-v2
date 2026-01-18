@@ -76,6 +76,9 @@ client/dist/
 client/.vite/
 functions/lib/
 
+# Documentation (local only)
+docs/
+
 # Private notes
 ADMIN_PLAN.md
 NEXT_STEPS.md
@@ -84,3 +87,7 @@ SEARCH_REPORT.md
 UX_UI_AUDIT.md
 STATUS_BOARD_INTERNAL.md
 firestore.indexes.md
+MASTER_TRACKER_CONTEXT.md
+
+# Local seed data
+dataset.json

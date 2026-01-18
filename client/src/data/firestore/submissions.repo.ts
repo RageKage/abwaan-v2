@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -15,15 +14,13 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/data/firebase/client'
+import { createSubmission as createSubmissionCallable } from '@/data/functions/submissions'
 import type {
   NewSubmissionInput,
   Submission,
-  SubmissionOrigin,
-  SubmissionSource,
   SubmissionStatus,
   SubmissionType,
 } from '@/data/models/submission'
-import type { UserProfile } from './profiles.repo'
 
 type SubmissionStatusFilter = SubmissionStatus | 'all'
 type SubmissionPublicFields = Partial<
@@ -72,17 +69,6 @@ export const pickSubmissionPublicFields = (input: Record<string, unknown>): Subm
   }
 
   return Object.fromEntries(Object.entries(input).filter(([key]) => allowedKeys.has(key))) as SubmissionPublicFields
-}
-
-const normalizeSource = (source?: NewSubmissionInput['source']): SubmissionSource | null => {
-  if (!source) return null
-  const name = source.name?.trim()
-  if (!name) return null
-  return {
-    name,
-    url: source.url?.trim() || null,
-    notes: source.notes?.trim() || null,
-  }
 }
 
 const SEARCH_KEYWORD_LIMIT = 60
@@ -137,7 +123,7 @@ export const buildSubmissionSearchFields = ({
   return { searchIndex, searchKeywords }
 }
 
-const normalizeSubmission = (id: string, data: Partial<Submission>): Submission => {
+export const normalizeSubmission = (id: string, data: Partial<Submission>): Submission => {
   return {
     id,
     uid: data.uid ?? '',
@@ -161,65 +147,16 @@ const normalizeSubmission = (id: string, data: Partial<Submission>): Submission 
     voteUp: data.voteUp ?? 0,
     voteDown: data.voteDown ?? 0,
     voteScore: data.voteScore ?? 0,
+    reportCount: data.reportCount ?? 0,
     // Add searchable index field (normalized for case-insensitive search)
     searchIndex: data.searchIndex ?? '',
     searchKeywords: data.searchKeywords ?? [],
   }
 }
 
-export const createSubmission = async (
-  input: NewSubmissionInput,
-  author: {
-    uid: string
-    displayName: string | null
-    email: string | null
-    profile: UserProfile | null
-  },
-): Promise<Submission> => {
-  const publicInput = pickSubmissionPublicFields(input as unknown as Record<string, unknown>)
-
-  const title = typeof publicInput.title === 'string' ? publicInput.title.trim() : ''
-  const translation = typeof publicInput.translation === 'string' ? publicInput.translation.trim() : ''
-  const origin = (publicInput.origin ?? input.origin) as SubmissionOrigin
-  const status = 'published' as SubmissionStatus
-  const type = (publicInput.type ?? input.type) as SubmissionType
-
-  const displayName = author.profile?.displayName || author.displayName || author.email || 'Anonymous'
-  const searchFields = buildSubmissionSearchFields({
-    type,
-    title: title || '',
-    text: input.text,
-    meaning: input.meaning,
-    username: author.profile?.username ?? null,
-  })
-
-  const payload: Omit<Submission, 'id'> = {
-    uid: author.uid,
-    displayName,
-    username: author.profile?.username ?? null,
-    type,
-    language: input.language,
-    origin,
-    status,
-    title: title || null,
-    text: input.text,
-    meaning: input.meaning,
-    translation: translation || null,
-    source: origin === 'shared' ? normalizeSource(input.source) : null,
-    createdAt: Date.now(),
-    updatedAt: null,
-    updatedBy: null,
-    voteUp: 0,
-    voteDown: 0,
-    voteScore: 0,
-    // Add searchable index field (normalized for case-insensitive search)
-    searchIndex: searchFields.searchIndex,
-    // Array of words for more flexible search (whole word match)
-    searchKeywords: searchFields.searchKeywords,
-  }
-
-  const docRef = await addDoc(collection(db, 'submissions'), payload)
-  return { id: docRef.id, ...payload }
+export const createSubmission = async (input: NewSubmissionInput): Promise<Submission> => {
+  const result = await createSubmissionCallable(input)
+  return result.submission
 }
 
 export const listSubmissions = async ({
@@ -360,46 +297,76 @@ export const listSubmissionsByAuthor = async (
 
 export const searchSubmissions = async (
   term: string,
-  limit: number = 20,
-  status: SubmissionStatusFilter = 'published',
-): Promise<Submission[]> => {
+  {
+    limit = 20,
+    status = 'published',
+    lastPrefixDoc = null,
+    lastKeywordDoc = null,
+  }: {
+    limit?: number
+    status?: SubmissionStatusFilter
+    lastPrefixDoc?: QueryDocumentSnapshot | null
+    lastKeywordDoc?: QueryDocumentSnapshot | null
+  } = {},
+): Promise<{
+  items: Submission[]
+  lastPrefixDoc: QueryDocumentSnapshot | null
+  lastKeywordDoc: QueryDocumentSnapshot | null
+  hasMore: boolean
+}> => {
   const normalizedTerm = term.trim().toLowerCase()
-  if (!normalizedTerm) return []
+  if (!normalizedTerm) {
+    return { items: [], lastPrefixDoc: null, lastKeywordDoc: null, hasMore: false }
+  }
 
-  const perQueryLimit = Math.ceil(limit / 2)
+  const perQueryLimit = Math.max(1, Math.ceil(limit / 2))
   const statusFilter = status !== 'all' ? where('status', '==', status) : null
 
-  const prefixQuery = query(
-    collection(db, 'submissions'),
+  const prefixConstraints: QueryConstraint[] = [
     ...(statusFilter ? [statusFilter] : []),
     where('searchIndex', '>=', normalizedTerm),
     where('searchIndex', '<=', normalizedTerm + '\uf8ff'),
     orderBy('searchIndex'),
     limitResults(perQueryLimit),
-  )
+  ]
+  if (lastPrefixDoc) {
+    prefixConstraints.push(startAfter(lastPrefixDoc))
+  }
 
-  const keywordQuery = query(
-    collection(db, 'submissions'),
+  const keywordConstraints: QueryConstraint[] = [
     ...(statusFilter ? [statusFilter] : []),
     where('searchKeywords', 'array-contains', normalizedTerm),
     limitResults(perQueryLimit),
-  )
+  ]
+  if (lastKeywordDoc) {
+    keywordConstraints.push(startAfter(lastKeywordDoc))
+  }
 
-  const [prefixSnap, keywordSnap] = await Promise.all([getDocs(prefixQuery), getDocs(keywordQuery)])
+  const [prefixSnap, keywordSnap] = await Promise.all([
+    getDocs(query(collection(db, 'submissions'), ...prefixConstraints)),
+    getDocs(query(collection(db, 'submissions'), ...keywordConstraints)),
+  ])
 
   const resultMap = new Map<string, Submission>()
-
   prefixSnap.docs.forEach((docSnap) => {
     resultMap.set(docSnap.id, normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
   })
-
   keywordSnap.docs.forEach((docSnap) => {
     if (!resultMap.has(docSnap.id)) {
       resultMap.set(docSnap.id, normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
     }
   })
 
-  return Array.from(resultMap.values())
+  const hasMore = prefixSnap.docs.length === perQueryLimit || keywordSnap.docs.length === perQueryLimit
+  const nextPrefixDoc = prefixSnap.docs[prefixSnap.docs.length - 1] ?? null
+  const nextKeywordDoc = keywordSnap.docs[keywordSnap.docs.length - 1] ?? null
+
+  return {
+    items: Array.from(resultMap.values()),
+    lastPrefixDoc: nextPrefixDoc,
+    lastKeywordDoc: nextKeywordDoc,
+    hasMore,
+  }
 }
 
 export const deleteSubmission = async (id: string): Promise<void> => {

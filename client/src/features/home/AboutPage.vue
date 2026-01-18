@@ -48,6 +48,9 @@ const appVersion = __APP_VERSION__
             <img
               :src="landingImage"
               alt="Somali Landscape"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
               class="absolute inset-0 w-full h-full object-cover transition-all duration-[2s] ease-in-out grayscale group-hover:grayscale-0 group-hover:scale-105"
             />
             <div class="absolute inset-0 bg-gray-900/10 mix-blend-multiply pointer-events-none"></div>
@@ -236,7 +239,7 @@ const appVersion = __APP_VERSION__
               <div
                 class="absolute inset-0 border border-gray-200 rounded-full scale-110 opacity-50 border-dashed animate-[spin_60s_linear_infinite]"
               ></div>
-              <img :src="abwaanLogo" alt="Abwaan Logo" />
+              <img :src="abwaanLogo" alt="Abwaan Logo" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>

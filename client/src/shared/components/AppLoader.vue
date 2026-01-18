@@ -15,7 +15,13 @@ const appVersion = __APP_VERSION__
           class="h-16 w-16 border border-gray-900 rounded-full flex items-center justify-center bg-white shadow-sm relative overflow-hidden"
         >
           <span class="absolute inset-0 bg-carrotOrange-500/10 animate-pulse"></span>
-          <img src="@/assets/logo/Abwaan_4.svg" alt="Abwaan" class="w-8 h-8 opacity-80" />
+          <img
+            src="@/assets/logo/Abwaan_4.svg"
+            alt="Abwaan"
+            loading="eager"
+            decoding="async"
+            class="w-8 h-8 opacity-80"
+          />
         </div>
         <h1 class="text-3xl font-serif text-gray-900 tracking-tight">Abwaan</h1>
       </div>

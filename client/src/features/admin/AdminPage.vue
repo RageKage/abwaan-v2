@@ -13,7 +13,7 @@ const submissionsStore = useSubmissionsStore()
 const reportsStore = useReportsStore()
 
 const activeTab = ref<'submissions' | 'reports'>('submissions')
-const activeStatus = ref<SubmissionStatus>('pending')
+const activeStatus = ref<SubmissionStatus>('hidden')
 const activeReportStatus = ref<ReportStatus>('open')
 
 const submissionLoading = computed(() => submissionsStore.busy)
@@ -122,7 +122,7 @@ const handleToggleStatus = async (submission: Submission) => {
 
 const handleReportStatus = async (report: Report, status: ReportStatus) => {
   try {
-    await reportsStore.setStatus(report.id, status)
+    await reportsStore.setStatus(report, status)
     toastSuccess('Report updated')
     await loadReports()
   } catch {
@@ -218,7 +218,7 @@ watch([activeReportStatus, activeTab], () => {
               </template>
               <template v-else>
                 <button
-                  v-for="status in ['open', 'reviewed']"
+                  v-for="status in ['open', 'reviewed', 'dismissed']"
                   :key="status"
                   @click="activeReportStatus = status as any"
                   class="px-3 py-1 border border-gray-900 text-[10px] font-bold uppercase tracking-widest transition-colors"

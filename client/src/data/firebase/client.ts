@@ -1,5 +1,5 @@
 import { initializeApp, getApp, getApps } from 'firebase/app'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getFirestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
@@ -24,4 +24,10 @@ if (import.meta.env.DEV && !globalFlags[emulatorFlag]) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
   connectFunctionsEmulator(functions, '127.0.0.1', 5001)
   globalFlags[emulatorFlag] = true
+}
+
+if (!import.meta.env.DEV) {
+  enableMultiTabIndexedDbPersistence(db).catch(() => {
+    // Persistence can fail in some environments (private mode, blocked storage).
+  })
 }

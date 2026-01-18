@@ -253,7 +253,7 @@
     },
     {
       "collectionGroup": "reports",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "status",
@@ -267,7 +267,7 @@
     },
     {
       "collectionGroup": "reports",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "status",

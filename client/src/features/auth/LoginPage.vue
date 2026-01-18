@@ -13,6 +13,8 @@ const isRegister = ref(false)
 const displayName = ref('')
 const email = ref('')
 const password = ref('')
+const resetMessage = ref<string | null>(null)
+const resetError = ref<string | null>(null)
 
 const title = computed(() => (isRegister.value ? 'Member Registration' : 'Member Access'))
 const submitLabel = computed(() => (isRegister.value ? 'Create ID' : 'Enter Archive'))
@@ -21,6 +23,8 @@ const toggleLabel = computed(() => (isRegister.value ? 'Already have an ID? Sign
 const toggleMode = () => {
   isRegister.value = !isRegister.value
   authStore.clearError()
+  resetMessage.value = null
+  resetError.value = null
 }
 
 watch(
@@ -35,6 +39,11 @@ watch(
   },
   { immediate: true },
 )
+
+watch(email, () => {
+  resetMessage.value = null
+  resetError.value = null
+})
 
 const handleSubmit = async () => {
   try {
@@ -53,6 +62,17 @@ const handleSubmit = async () => {
     await router.push(redirect)
   } catch {
     // Error is stored in the auth store for display.
+  }
+}
+
+const handlePasswordReset = async () => {
+  resetMessage.value = null
+  resetError.value = null
+  try {
+    await authStore.resetPassword(email.value)
+    resetMessage.value = 'If an account exists, a reset link has been sent to your email.'
+  } catch (err) {
+    resetError.value = err instanceof Error ? err.message : 'Unable to send reset email.'
   }
 }
 
@@ -149,6 +169,18 @@ const handleGoogleLogin = async () => {
               />
             </div>
 
+            <div v-if="!isRegister" class="flex items-center justify-between text-[10px] uppercase tracking-widest">
+              <span class="text-gray-400">Need access?</span>
+              <button
+                type="button"
+                class="font-bold text-gray-500 hover:text-carrotOrange-600 transition-colors"
+                :disabled="authStore.busy"
+                @click="handlePasswordReset"
+              >
+                Reset password
+              </button>
+            </div>
+
             <button
               type="submit"
               :disabled="authStore.busy"
@@ -184,6 +216,12 @@ const handleGoogleLogin = async () => {
 
           <p v-if="authStore.error" class="text-center text-xs font-mono text-red-500 uppercase mt-4">
             /// Error: {{ authStore.error }}
+          </p>
+          <p v-if="resetError" class="text-center text-xs font-mono text-red-500 uppercase mt-4">
+            /// Error: {{ resetError }}
+          </p>
+          <p v-if="resetMessage" class="text-center text-xs font-mono text-emerald-600 uppercase mt-4">
+            /// {{ resetMessage }}
           </p>
         </div>
 

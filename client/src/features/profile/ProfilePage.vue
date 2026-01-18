@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { claimUsername } from '@/data/functions/usernames'
 import { useProfileStore } from '@/features/profile/profile.store'
-import { useFavoritesStore } from '@/features/favorites/favorites.store'
-import SubmissionCard from '@/shared/components/SubmissionCard.vue'
-import LoadMore from '@/shared/components/LoadMore.vue'
-import EmptyState from '@/shared/components/EmptyState.vue'
 import { toastError, toastSuccess } from '@/shared/utils/alerts'
 const profileStore = useProfileStore()
-const favoritesStore = useFavoritesStore()
 
 const displayName = ref('')
 const bio = ref('')
@@ -16,8 +11,6 @@ const usernameInput = ref('')
 
 const claimBusy = ref(false)
 const claimError = ref<string | null>(null)
-const isLoadingMore = ref(false)
-const isFavoritesLoadingMore = ref(false)
 
 const isLoading = computed(() => profileStore.busy && !profileStore.profile)
 const joinedLabel = computed(() => {
@@ -33,7 +26,7 @@ const joinedLabel = computed(() => {
 const contributionCount = computed(() => {
   const total = profileStore.profile?.submissionCount
   if (typeof total === 'number') return total
-  return profileStore.submissions.length
+  return 0
 })
 
 watch(
@@ -75,28 +68,6 @@ const handleClaimUsername = async () => {
   }
 }
 
-const handleLoadMore = async () => {
-  isLoadingMore.value = true
-  try {
-    await profileStore.fetchMySubmissions(true)
-  } finally {
-    isLoadingMore.value = false
-  }
-}
-
-const handleLoadMoreFavorites = async () => {
-  isFavoritesLoadingMore.value = true
-  try {
-    await favoritesStore.loadFavorites(true)
-  } finally {
-    isFavoritesLoadingMore.value = false
-  }
-}
-
-onMounted(() => {
-  void profileStore.fetchMySubmissions()
-  void favoritesStore.loadFavorites()
-})
 </script>
 
 <template>
@@ -137,11 +108,12 @@ onMounted(() => {
         <div class="lg:col-span-8 p-10 lg:p-12 bg-white flex flex-col justify-between gap-12">
           <div class="space-y-10">
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+              <label for="settings-display-name" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                 Display Name
               </label>
               <input
                 v-model="displayName"
+                id="settings-display-name"
                 type="text"
                 placeholder="e.g. Arawelo"
                 autocomplete="name"
@@ -150,9 +122,11 @@ onMounted(() => {
             </div>
 
             <div class="group">
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Biography</label>
+              <label for="settings-bio" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Biography</label>
               <textarea
+              data-lenis-prevent
                 v-model="bio"
+                id="settings-bio"
                 rows="4"
                 placeholder="Tell the community about yourself..."
                 class="block w-full resize-none bg-transparent border-b border-gray-200 py-3 text-lg text-gray-900 placeholder:text-gray-300 focus:border-carrotOrange-500 focus:outline-none transition-colors rounded-none leading-relaxed"
@@ -213,8 +187,10 @@ onMounted(() => {
                 >
                   @
                 </div>
+                <label for="settings-username" class="sr-only">Username</label>
                 <input
                   v-model="usernameInput"
+                  id="settings-username"
                   type="text"
                   placeholder="username"
                   class="block w-full bg-white py-4 pl-10 pr-4 text-lg font-mono text-gray-900 focus:bg-gray-50 focus:outline-none transition-colors"
@@ -238,86 +214,6 @@ onMounted(() => {
             </p>
           </div>
         </div>
-      </div>
-
-      <div class="border-b border-gray-200 bg-gray-50 px-10 py-6 border-l lg:border-l-0">
-        <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 flex items-center gap-3">
-          <span class="w-2 h-2 rounded-full bg-carrotOrange-500"></span>
-          Your Contributions
-        </h2>
-      </div>
-
-      <div v-if="profileStore.submissions.length > 0">
-        <div
-          class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white"
-        >
-          <div
-            v-for="(submission, index) in profileStore.submissions"
-            :key="submission.id"
-            class="hover:bg-gray-50 transition-colors duration-300"
-          >
-            <SubmissionCard :submission="submission" :index="index" />
-          </div>
-        </div>
-
-        <div class="bg-white">
-          <LoadMore
-            :has-more="!!profileStore.lastDoc"
-            :loading="isLoadingMore"
-            :show-end="!profileStore.busy && profileStore.submissions.length > 0"
-            @load-more="handleLoadMore"
-          />
-        </div>
-      </div>
-
-      <div v-else>
-        <EmptyState
-          eyebrow="Profile"
-          title="Archive Empty"
-          description="You have not shared any wisdom or poetry yet."
-          primary-label="Create First Entry"
-          primary-to="/contribute"
-        />
-      </div>
-
-      <div class="border-b border-gray-200 bg-gray-50 px-10 py-6 border-l lg:border-l-0">
-        <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 flex items-center gap-3">
-          <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-          Saved Items
-        </h2>
-      </div>
-
-      <div v-if="favoritesStore.items.length > 0">
-        <div
-          class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white"
-        >
-          <div
-            v-for="(submission, index) in favoritesStore.items"
-            :key="submission.id"
-            class="hover:bg-gray-50 transition-colors duration-300"
-          >
-            <SubmissionCard :submission="submission" :index="index" />
-          </div>
-        </div>
-
-        <div class="bg-white">
-          <LoadMore
-            :has-more="!!favoritesStore.lastDoc"
-            :loading="isFavoritesLoadingMore"
-            :show-end="!favoritesStore.busy && favoritesStore.items.length > 0"
-            @load-more="handleLoadMoreFavorites"
-          />
-        </div>
-      </div>
-
-      <div v-else>
-        <EmptyState
-          eyebrow="Favorites"
-          title="No saved items yet"
-          description="Save entries you want to revisit later."
-          primary-label="Browse Archive"
-          primary-to="/collections"
-        />
       </div>
     </div>
   </main>

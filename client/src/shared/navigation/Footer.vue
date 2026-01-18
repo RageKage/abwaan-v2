@@ -58,6 +58,8 @@ const lastCheckedLabel = computed(() => {
                 <img
                   src="@/assets/logo/Abwaan_4.svg"
                   alt="Abwaan"
+                  loading="lazy"
+                  decoding="async"
                   class="w-5 h-5 grayscale group-hover:grayscale-0 transition-all"
                 />
               </div>

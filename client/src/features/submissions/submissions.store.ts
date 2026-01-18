@@ -12,7 +12,6 @@ import {
 } from '@/data/firestore/submissions.repo'
 import { voteSubmission } from '@/data/functions/votes'
 import { useAuthStore } from '../auth/auth.store'
-import { useProfileStore } from '../profile/profile.store'
 import { toastError } from '@/shared/utils/alerts'
 
 import type { QueryDocumentSnapshot } from 'firebase/firestore'
@@ -22,6 +21,9 @@ export const useSubmissionsStore = defineStore('submissions', () => {
   const selected = ref<Submission | null>(null)
   const userVote = ref<1 | 0 | -1 | null>(null)
   const lastDoc = ref<QueryDocumentSnapshot | null>(null)
+  const searchLastPrefixDoc = ref<QueryDocumentSnapshot | null>(null)
+  const searchLastKeywordDoc = ref<QueryDocumentSnapshot | null>(null)
+  const searchHasMore = ref(false)
   const busy = ref(false)
   const error = ref<string | null>(null)
 
@@ -40,6 +42,9 @@ export const useSubmissionsStore = defineStore('submissions', () => {
       busy.value = true
       items.value = []
       lastDoc.value = null
+      searchLastPrefixDoc.value = null
+      searchLastKeywordDoc.value = null
+      searchHasMore.value = false
     }
 
     error.value = null
@@ -68,21 +73,50 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     }
   }
 
-  const search = async (term: string) => {
+  const search = async (term: string, loadMore = false) => {
     if (!term.trim()) {
       await loadLatest()
       return
     }
-    busy.value = true
+
+    if (!loadMore) {
+      busy.value = true
+      items.value = []
+      lastDoc.value = null
+      searchLastPrefixDoc.value = null
+      searchLastKeywordDoc.value = null
+    }
+
     error.value = null
-    // Reset pagination state when searching
-    lastDoc.value = null
     try {
-      items.value = await searchSubmissions(term)
+      const { items: newItems, lastPrefixDoc, lastKeywordDoc, hasMore } = await searchSubmissions(term, {
+        limit: 20,
+        lastPrefixDoc: loadMore ? searchLastPrefixDoc.value : null,
+        lastKeywordDoc: loadMore ? searchLastKeywordDoc.value : null,
+      })
+
+      if (loadMore) {
+        const existingIds = new Set(items.value.map((item) => item.id))
+        const merged = items.value.slice()
+        newItems.forEach((item) => {
+          if (existingIds.has(item.id)) return
+          existingIds.add(item.id)
+          merged.push(item)
+        })
+        items.value = merged
+      } else {
+        items.value = newItems
+      }
+
+      searchLastPrefixDoc.value = lastPrefixDoc
+      searchLastKeywordDoc.value = lastKeywordDoc
+      searchHasMore.value = hasMore
     } catch (err) {
       setError(err, 'Failed to search submissions')
     } finally {
-      busy.value = false
+      if (!loadMore) {
+        busy.value = false
+      }
     }
   }
 
@@ -112,18 +146,10 @@ export const useSubmissionsStore = defineStore('submissions', () => {
       throw new Error('Please log in again.')
     }
 
-    const profileStore = useProfileStore()
-    await profileStore.waitForProfile()
-
     busy.value = true
     error.value = null
     try {
-      const created = await createSubmission(input, {
-        uid: authStore.user.uid,
-        displayName: authStore.user.displayName,
-        email: authStore.user.email,
-        profile: profileStore.profile,
-      })
+      const created = await createSubmission(input)
       selected.value = created
       items.value = [created, ...items.value.filter((item) => item.id !== created.id)]
       return created.id
@@ -272,6 +298,7 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     selected,
     userVote,
     lastDoc,
+    searchHasMore,
     busy,
     error,
     loadLatest,

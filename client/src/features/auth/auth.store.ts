@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
@@ -75,6 +76,16 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
+  const resetPassword = async (email: string) => {
+    const normalized = email.trim()
+    if (!normalized) {
+      throw new Error('Enter your email to reset your password.')
+    }
+    await withStatus(async () => {
+      await sendPasswordResetEmail(auth, normalized)
+    })
+  }
+
   let didInit = false
 
   async function initAuthListener() {
@@ -110,6 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     loginWithGoogle,
     logout,
+    resetPassword,
     waitForAuthReady,
     clearError,
   }

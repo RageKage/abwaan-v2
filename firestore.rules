@@ -52,6 +52,48 @@ service cloud.firestore {
           || isOwner(submissionData(id).uid));
     }
 
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isReportReason(reason) {
+      return reason in ['spam', 'abuse', 'plagiarism', 'inaccurate', 'other'];
+    }
+
+    function isReportStatus(status) {
+      return status in ['open', 'reviewed', 'dismissed'];
+    }
+
+    function reportKeys() {
+      return [
+        'submissionId',
+        'submissionType',
+        'submissionTitle',
+        'submissionAuthorUid',
+        'submissionAuthorUsername',
+        'reporterUid',
+        'reporterUsername',
+        'reason',
+        'details',
+        'status',
+        'createdAt',
+        'reviewedAt',
+        'reviewedBy',
+      ];
+    }
+
+    function hasOnlyReportKeys(data) {
+      return data.keys().hasOnly(reportKeys()) && data.keys().hasAll(reportKeys());
+    }
+
+    function reportReasonLengthOk(reason) {
+      return reason is string && reason.size() <= 32;
+    }
+
+    function reportDetailsLengthOk(details) {
+      return details == null || (details is string && details.size() <= 2000);
+    }
+
     // ---------- PROFILES ----------
     match /profiles/{uid} {
       allow read: if true;
@@ -61,7 +103,8 @@ service cloud.firestore {
       // Username is claimed via Cloud Function (admin) and is locked here.
       allow update: if isOwner(uid)
         && request.resource.data.username == resource.data.username
-        && request.resource.data.isAdmin == resource.data.isAdmin;
+        && request.resource.data.isAdmin == resource.data.isAdmin
+        && request.resource.data.submissionCount == resource.data.submissionCount;
       allow delete: if false;
     }
 
@@ -87,12 +130,7 @@ service cloud.firestore {
         || !('status' in resource.data)
         || isAdmin()
         || isOwner(resource.data.uid);
-      allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && profileExists(request.auth.uid)
-        && submissionUsernameAllowed(request.auth.uid)
-        && submissionDisplayNameAllowed(request.auth.uid)
-        && (!('status' in request.resource.data) || request.resource.data.status == 'published');
+      allow create: if false;
       allow update: if (signedIn()
         && resource.data.uid == request.auth.uid
         && request.resource.data.uid == resource.data.uid
@@ -110,6 +148,10 @@ service cloud.firestore {
         && (
           (!('statusReason' in resource.data) && !('statusReason' in request.resource.data))
           || request.resource.data.statusReason == resource.data.statusReason
+        )
+        && (
+          (!('reportCount' in resource.data) && !('reportCount' in request.resource.data))
+          || request.resource.data.reportCount == resource.data.reportCount
         )
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.voteUp == resource.data.voteUp
@@ -137,13 +179,38 @@ service cloud.firestore {
       match /votes/{uid} {
         allow read: if signedIn() && request.auth.uid == uid;
       }
-    }
 
-    // ---------- REPORTS ----------
-    match /reports/{id} {
-      allow create: if signedIn()
-        && request.resource.data.reporterUid == request.auth.uid;
-      allow read, update, delete: if isAdmin();
+      match /reports/{uid} {
+        allow create: if signedIn()
+          && uid == request.auth.uid
+          && hasOnlyReportKeys(request.resource.data)
+          && request.resource.data.reporterUid == request.auth.uid
+          && request.resource.data.submissionId == id
+          && request.resource.data.submissionType is string
+          && request.resource.data.submissionType in ['Proverb', 'Poetry']
+          && request.resource.data.submissionTitle is string
+          && request.resource.data.submissionAuthorUid is string
+          && isNullableString(request.resource.data.submissionAuthorUsername)
+          && isNullableString(request.resource.data.reporterUsername)
+          && request.resource.data.reason is string
+          && isReportReason(request.resource.data.reason)
+          && reportReasonLengthOk(request.resource.data.reason)
+          && request.resource.data.status is string
+          && request.resource.data.status == 'open'
+          && request.resource.data.createdAt is number
+          && isNullableString(request.resource.data.details)
+          && reportDetailsLengthOk(request.resource.data.details)
+          && request.resource.data.reviewedAt == null
+          && request.resource.data.reviewedBy == null
+          && !exists(/databases/$(database)/documents/submissions/$(id)/reports/$(uid));
+        allow read: if isAdmin() || isOwner(uid);
+        allow update: if isAdmin()
+          && hasOnlyReportKeys(request.resource.data)
+          && request.resource.data.submissionId == id
+          && request.resource.data.reporterUid == resource.data.reporterUid
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isAdmin();
+      }
     }
 
     // ---------- DEFAULT DENY ----------

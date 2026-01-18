@@ -21,7 +21,7 @@ export const useReportsStore = defineStore('reports', () => {
     }
   }
 
-  const setStatus = async (id: string, status: ReportStatus) => {
+  const setStatus = async (report: Report, status: ReportStatus) => {
     const authStore = useAuthStore()
     if (!authStore.user) {
       throw new Error('Please log in again.')
@@ -29,13 +29,14 @@ export const useReportsStore = defineStore('reports', () => {
     busy.value = true
     error.value = null
     try {
-      await updateReportStatus(id, status, authStore.user.uid)
+      await updateReportStatus(report.submissionId, report.reporterUid, status, authStore.user.uid)
+      const timestamp = Date.now()
       items.value = items.value.map((item) =>
-        item.id === id
+        item.submissionId === report.submissionId && item.reporterUid === report.reporterUid
           ? {
               ...item,
               status,
-              reviewedAt: Date.now(),
+              reviewedAt: timestamp,
               reviewedBy: authStore.user?.uid ?? null,
             }
           : item,

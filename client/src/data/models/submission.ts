@@ -32,6 +32,7 @@ export interface Submission {
   voteUp: number
   voteDown: number
   voteScore: number
+  reportCount: number
   searchIndex: string
   searchKeywords: string[]
 }

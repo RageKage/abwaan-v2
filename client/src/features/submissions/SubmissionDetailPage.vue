@@ -66,7 +66,13 @@ const commentCountLabel = computed(() => {
 const showReportModal = ref(false)
 const reportReason = ref<ReportReason>('spam')
 const reportDetails = ref('')
+const reportDetailLimit = 2000
+const reportDetailCount = computed(() => `${reportDetails.value.length}/${reportDetailLimit}`)
 const reportBusy = ref(false)
+const reportError = ref<string | null>(null)
+const reportTriggerRef = ref<HTMLButtonElement | null>(null)
+const reportReasonRef = ref<HTMLSelectElement | null>(null)
+const reportDetailsRef = ref<HTMLTextAreaElement | null>(null)
 const reportReasons: { value: ReportReason; label: string }[] = [
   { value: 'spam', label: 'Spam or promotion' },
   { value: 'abuse', label: 'Abusive or hateful content' },
@@ -254,9 +260,38 @@ const handleDelete = async () => {
   }
 }
 
-const handleShare = () => {
-  navigator.clipboard.writeText(window.location.href)
-  toastSuccess('Link copied to clipboard')
+const handleShare = async () => {
+  const url = window.location.href
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url)
+      toastSuccess('Link copied to clipboard')
+      return
+    }
+  } catch {
+    // Fall through to legacy clipboard handling.
+  }
+
+  try {
+    const textArea = document.createElement('textarea')
+    textArea.value = url
+    textArea.setAttribute('readonly', '')
+    textArea.style.position = 'fixed'
+    textArea.style.top = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.select()
+    const success = document.execCommand('copy')
+    document.body.removeChild(textArea)
+    if (success) {
+      toastSuccess('Link copied to clipboard')
+      return
+    }
+  } catch {
+    // Fall through to prompt fallback.
+  }
+
+  window.prompt('Copy this link', url)
+  toastSuccess('Copy the link from the prompt.')
 }
 
 const handleToggleFavorite = async () => {
@@ -280,16 +315,26 @@ const openReportModal = () => {
   }
   reportReason.value = 'spam'
   reportDetails.value = ''
+  reportError.value = null
   showReportModal.value = true
 }
 
 const closeReportModal = () => {
+  reportError.value = null
   showReportModal.value = false
+}
+
+const handleReportKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeReportModal()
+  }
 }
 
 const submitReport = async () => {
   if (!submission.value || !authStore.user) return
   reportBusy.value = true
+  reportError.value = null
   try {
     await profileStore.waitForProfile()
     await createReport({
@@ -301,8 +346,9 @@ const submitReport = async () => {
     })
     toastSuccess('Report submitted. Thank you for helping protect the archive.')
     closeReportModal()
-  } catch {
-    toastError('Failed to submit report.')
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to submit report.'
+    reportError.value = message
   } finally {
     reportBusy.value = false
   }
@@ -415,6 +461,17 @@ watch(
     void loadSubmission()
   },
 )
+
+watch(showReportModal, async (open) => {
+  if (open) {
+    document.addEventListener('keydown', handleReportKeydown)
+    await nextTick()
+    reportReasonRef.value?.focus() ?? reportDetailsRef.value?.focus()
+    return
+  }
+  document.removeEventListener('keydown', handleReportKeydown)
+  reportTriggerRef.value?.focus()
+})
 </script>
 
 <template>
@@ -616,6 +673,7 @@ watch(
                     {{ isEditPoetry ? 'Verses' : 'Proverb Text' }}
                   </label>
                   <textarea
+                  data-lenis-prevent
                     v-model="editDraft.text"
                     rows="6"
                     placeholder="Begin writing here..."
@@ -637,6 +695,7 @@ watch(
                     Hidden Meaning / Context
                   </label>
                   <textarea
+                  data-lenis-prevent
                     v-model="editDraft.meaning"
                     rows="3"
                     placeholder="Explain the context..."
@@ -656,6 +715,7 @@ watch(
                     English Translation
                   </label>
                   <textarea
+                  data-lenis-prevent
                     v-model="editDraft.translation"
                     rows="3"
                     placeholder="Literal translation..."
@@ -751,6 +811,7 @@ watch(
                         Additional Notes
                       </label>
                       <textarea
+                      data-lenis-prevent
                         v-model="editDraft.source.notes"
                         rows="2"
                         class="block w-full bg-gray-50 border border-gray-200 p-3 text-sm focus:border-carrotOrange-500 focus:outline-none resize-none"
@@ -890,6 +951,7 @@ watch(
             </button>
             <button
               @click="openReportModal"
+              ref="reportTriggerRef"
               class="p-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-50 transition-colors group"
             >
               <svg
@@ -1035,14 +1097,15 @@ watch(
       </div>
     </div>
 
-    <div
-      v-if="showReportModal"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6"
-      @click.self="closeReportModal"
-    >
-      <div class="w-full max-w-lg bg-white border border-gray-200 shadow-xl">
+    <div v-if="showReportModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-6" @click.self="closeReportModal">
+      <div
+        class="w-full max-w-lg bg-white border border-gray-200 shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-modal-title"
+      >
         <div class="border-b border-gray-200 bg-gray-50 p-6">
-          <h3 class="text-2xl font-serif text-gray-900">Report Entry</h3>
+          <h3 id="report-modal-title" class="text-2xl font-serif text-gray-900">Report Entry</h3>
           <p class="text-sm text-gray-500 mt-2">Help us keep the archive accurate and respectful.</p>
         </div>
 
@@ -1051,6 +1114,7 @@ watch(
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Reason</label>
             <select
               v-model="reportReason"
+              ref="reportReasonRef"
               class="w-full border border-gray-200 bg-white px-3 py-2 text-sm focus:border-carrotOrange-500 focus:outline-none"
             >
               <option v-for="reason in reportReasons" :key="reason.value" :value="reason.value">
@@ -1064,12 +1128,22 @@ watch(
               Additional Notes (Optional)
             </label>
             <textarea
+            data-lenis-prevent
               v-model="reportDetails"
+              ref="reportDetailsRef"
               rows="4"
+              :maxlength="reportDetailLimit"
               class="w-full border border-gray-200 bg-white px-3 py-2 text-sm focus:border-carrotOrange-500 focus:outline-none"
               placeholder="Share any context that helps the review."
             ></textarea>
+            <p class="mt-2 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+              {{ reportDetailCount }}
+            </p>
           </div>
+
+          <p v-if="reportError" class="text-[10px] font-mono uppercase tracking-widest text-red-500">
+            /// Error: {{ reportError }}
+          </p>
 
           <div class="flex flex-col sm:flex-row gap-3">
             <button

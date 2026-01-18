@@ -54,6 +54,9 @@
                 v-if="currentImage?.src"
                 :src="currentImage.src"
                 alt="Archive Feature"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
                 class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
               />
             </div>
@@ -146,12 +149,38 @@
         <div
           v-for="(submission, index) in submissionsStore.items.slice(0, 3)"
           :key="submission.id"
-          class="p-10 hover:bg-gray-50 transition-colors duration-300 group"
+          class=" hover:bg-gray-50 transition-colors duration-300 group"
           v-motion
           :initial="{ opacity: 0, y: 10 }"
           :enter="{ opacity: 1, y: 0, transition: { delay: index * 100 } }"
         >
           <SubmissionCard :submission="submission" :index="index" class="h-full" />
+        </div>
+      </div>
+    </section>
+    <section
+      v-else-if="submissionsStore.busy"
+      class="max-w-[1600px] mx-auto border-b border-gray-200 bg-white animate-pulse"
+    >
+      <div class="grid lg:grid-cols-12 border-b border-gray-200">
+        <div class="lg:col-span-3 p-8 border-r border-gray-200 bg-gray-50 flex flex-col justify-center gap-3">
+          <div class="h-3 w-28 bg-gray-200 rounded"></div>
+          <div class="h-6 w-40 bg-gray-200 rounded"></div>
+        </div>
+        <div class="lg:col-span-9 p-8 flex items-center justify-end">
+          <div class="h-4 w-40 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+        <div v-for="i in 3" :key="i" class="p-8 space-y-4 border-gray-200">
+          <div class="flex items-center justify-between">
+            <div class="h-3 w-16 bg-gray-200 rounded"></div>
+            <div class="h-3 w-10 bg-gray-200 rounded"></div>
+          </div>
+          <div class="h-6 w-3/4 bg-gray-200 rounded"></div>
+          <div class="h-4 w-full bg-gray-100 rounded"></div>
+          <div class="h-4 w-2/3 bg-gray-100 rounded"></div>
         </div>
       </div>
     </section>

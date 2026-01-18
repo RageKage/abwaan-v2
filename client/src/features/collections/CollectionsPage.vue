@@ -45,6 +45,11 @@ const hasSearch = computed(() => searchTerm.value.trim().length > 0)
 const hasFilters = computed(
   () => activeTab.value !== 'all' || activeLanguage.value !== 'all' || sortBy.value !== 'createdAt',
 )
+const searchCountLabel = computed(() => {
+  if (!hasSearch.value) return ''
+  const count = submissionsStore.items.length
+  return `Showing ${count} result${count === 1 ? '' : 's'}`
+})
 const contentState = computed(() => {
   if (submissionsStore.busy) return 'loading'
   if (submissionsStore.error) return 'error'
@@ -58,6 +63,7 @@ const loadLatest = async () => {
 }
 
 const handleSearch = async () => {
+  isLoadingMore.value = false
   await submissionsStore.search(searchTerm.value)
 }
 
@@ -132,7 +138,11 @@ const errorSecondaryAction = computed(() => (hasSearch.value ? handleClearSearch
 const handleLoadMore = async () => {
   isLoadingMore.value = true
   try {
-    await submissionsStore.loadLatest(activeType.value, true, sortBy.value, activeLang.value)
+    if (hasSearch.value) {
+      await submissionsStore.search(searchTerm.value, true)
+    } else {
+      await submissionsStore.loadLatest(activeType.value, true, sortBy.value, activeLang.value)
+    }
   } finally {
     isLoadingMore.value = false
   }
@@ -298,25 +308,40 @@ watch(searchTerm, (newTerm) => {
         />
       </div>
 
-      <div
-        v-else
-        class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white"
-      >
+      <div v-else>
+        <div v-if="hasSearch" class="bg-white border-b border-gray-200 px-6 py-3">
+          <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+            <span class="text-gray-400">Search Results</span>
+            <span class="text-gray-900">{{ searchCountLabel }}</span>
+          </div>
+          <div
+            v-if="submissionsStore.searchHasMore"
+            class="mt-2 text-[10px] uppercase tracking-widest text-gray-400"
+          >
+            More results available
+          </div>
+        </div>
+
         <div
-          v-for="(submission, index) in submissionsStore.items"
-          :key="submission.id"
-          class="hover:bg-gray-50 transition-colors duration-300"
+          class="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200 border-b border-gray-200 bg-white"
         >
-          <SubmissionCard :submission="submission" :index="index" />
+          <div
+            v-for="(submission, index) in submissionsStore.items"
+            :key="submission.id"
+            class="hover:bg-gray-50 transition-colors duration-300"
+          >
+            <SubmissionCard :submission="submission" :index="index" />
+          </div>
         </div>
       </div>
 
       <div class="bg-white">
         <LoadMore
-          v-if="!searchTerm"
-          :has-more="!!submissionsStore.lastDoc"
+          v-if="contentState === 'grid' && submissionsStore.items.length > 0"
+          :has-more="hasSearch ? submissionsStore.searchHasMore : !!submissionsStore.lastDoc"
           :loading="isLoadingMore"
           :show-end="!submissionsStore.busy && submissionsStore.items.length > 0"
+          :end-label="hasSearch ? 'End of results' : undefined"
           @load-more="handleLoadMore"
         />
       </div>

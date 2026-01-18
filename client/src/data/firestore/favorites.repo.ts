@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
   getDoc,
   getDocs,
   limit as limitResults,
@@ -9,13 +10,14 @@ import {
   query,
   setDoc,
   startAfter,
+  where,
   type QueryConstraint,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/data/firebase/client'
 import type { FavoriteRecord } from '@/data/models/favorite'
 import type { Submission } from '@/data/models/submission'
-import { getSubmission } from '@/data/firestore/submissions.repo'
+import { normalizeSubmission } from '@/data/firestore/submissions.repo'
 
 const favoritesCollection = (uid: string) => collection(db, 'privateUsers', uid, 'favorites')
 
@@ -64,18 +66,22 @@ export const listFavoriteSubmissions = async ({
     } satisfies FavoriteRecord
   })
 
-  const submissions = await Promise.all(
-    favorites.map(async (favorite) => {
-      try {
-        return await getSubmission(favorite.submissionId)
-      } catch {
-        return null
-      }
-    }),
-  )
+  const submissionIds = favorites.map((favorite) => favorite.submissionId).filter(Boolean)
+  const submissionsById = new Map<string, Submission>()
+  const batchSize = 10
+
+  for (let index = 0; index < submissionIds.length; index += batchSize) {
+    const batch = submissionIds.slice(index, index + batchSize)
+    if (batch.length === 0) continue
+    const submissionsQuery = query(collection(db, 'submissions'), where(documentId(), 'in', batch))
+    const submissionsSnap = await getDocs(submissionsQuery)
+    submissionsSnap.docs.forEach((docSnap) => {
+      submissionsById.set(docSnap.id, normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
+    })
+  }
 
   const items = favorites
-    .map((favorite, index) => submissions[index] ?? null)
+    .map((favorite) => submissionsById.get(favorite.submissionId) ?? null)
     .filter((item): item is Submission => item !== null)
 
   const newLastDoc = snapshot.docs[snapshot.docs.length - 1] ?? null

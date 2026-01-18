@@ -1,10 +1,11 @@
 import {
-  addDoc,
-  collection,
+  collectionGroup,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
+  setDoc,
   updateDoc,
   where,
   limit as limitResults,
@@ -27,6 +28,12 @@ export const createReport = async ({
   reporterUid: string
   reporterUsername: string | null
 }): Promise<Report> => {
+  const reportRef = doc(db, 'submissions', submission.id, 'reports', reporterUid)
+  const existing = await getDoc(reportRef)
+  if (existing.exists()) {
+    throw new Error('You already reported this entry.')
+  }
+
   const payload: Omit<Report, 'id'> = {
     submissionId: submission.id,
     submissionType: submission.type,
@@ -43,8 +50,8 @@ export const createReport = async ({
     reviewedBy: null,
   }
 
-  const docRef = await addDoc(collection(db, 'reports'), payload)
-  return { id: docRef.id, ...payload }
+  await setDoc(reportRef, payload)
+  return { id: reportRef.id, ...payload }
 }
 
 export const listReports = async (status: ReportStatus = 'open', limit = 25): Promise<Report[]> => {
@@ -52,13 +59,18 @@ export const listReports = async (status: ReportStatus = 'open', limit = 25): Pr
   if (limit) {
     constraints.push(limitResults(limit))
   }
-  const reportsQuery = query(collection(db, 'reports'), ...constraints)
+  const reportsQuery = query(collectionGroup(db, 'reports'), ...constraints)
   const snapshot = await getDocs(reportsQuery)
   return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as Omit<Report, 'id'>) }))
 }
 
-export const updateReportStatus = async (id: string, status: ReportStatus, actorUid: string): Promise<void> => {
-  const reportRef = doc(db, 'reports', id)
+export const updateReportStatus = async (
+  submissionId: string,
+  reporterUid: string,
+  status: ReportStatus,
+  actorUid: string,
+): Promise<void> => {
+  const reportRef = doc(db, 'submissions', submissionId, 'reports', reporterUid)
   await updateDoc(reportRef, {
     status,
     reviewedAt: Date.now(),
@@ -76,7 +88,7 @@ export const countOpenReportsBySubmissionIds = async (submissionIds: string[]): 
   for (let index = 0; index < uniqueIds.length; index += batchSize) {
     const batch = uniqueIds.slice(index, index + batchSize)
     const reportsQuery = query(
-      collection(db, 'reports'),
+      collectionGroup(db, 'reports'),
       where('status', '==', 'open'),
       where('submissionId', 'in', batch),
     )

@@ -47,8 +47,12 @@ const handleUserAction = async (action: UserRouteAction) => {
     await router.push('/login')
     return
   }
-  if (action === 'profile') {
-    await router.push('/profile')
+  if (action === 'desk') {
+    await router.push('/desk')
+    return
+  }
+  if (action === 'settings') {
+    await router.push('/settings')
     return
   }
   if (action === 'admin') {
