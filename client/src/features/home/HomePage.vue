@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full font-sans text-gray-900 pt-24">
+  <div class="w-full font-sans text-gray-900">
     <header class="border-b border-gray-200">
       <div class="max-w-[1600px] mx-auto grid lg:grid-cols-12 min-h-[85vh]">
         <div

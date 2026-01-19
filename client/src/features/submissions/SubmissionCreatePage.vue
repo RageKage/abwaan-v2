@@ -228,7 +228,6 @@ const handleSubmit = async () => {
                 {{ isPoetry ? 'Verses' : 'Proverb Text' }}
               </label>
               <textarea
-                data-lenis-prevent
                 v-model="draft.text"
                 id="submission-text"
                 rows="8"
@@ -259,7 +258,6 @@ const handleSubmit = async () => {
                 Hidden Meaning / Context
               </label>
               <textarea
-                data-lenis-prevent
                 v-model="draft.meaning"
                 id="submission-meaning"
                 rows="6"
@@ -280,7 +278,6 @@ const handleSubmit = async () => {
                 English Translation
               </label>
               <textarea
-                data-lenis-prevent
                 v-model="draft.translation"
                 id="submission-translation"
                 rows="6"
@@ -390,7 +387,6 @@ const handleSubmit = async () => {
                     Additional Notes
                   </label>
                   <textarea
-                    data-lenis-prevent
                     v-model="draft.source.notes"
                     id="submission-source-notes"
                     rows="4"

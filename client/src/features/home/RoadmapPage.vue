@@ -55,6 +55,16 @@ const phases = [
         title: 'Search & Discovery',
         desc: 'Robust search with deep filtering (type, language, sort) and a fully wired community voting system.',
       },
+      {
+        id: 'f-4',
+        title: 'Moderation',
+        desc: 'A reactive safety system. All submissions are published immediately, but community reports will trigger a "pending" status for admin review.',
+      },
+      {
+        id: 'f-5',
+        title: 'Author Control',
+        desc: 'Edit workflows allow contributors to refine their submissions and manage their own data.',
+      },
     ],
   },
   {
@@ -62,20 +72,15 @@ const phases = [
     label: '02. Construction',
     status: 'In Progress',
     color: 'bg-carrotOrange-500 animate-pulse',
-    description: 'Safety and Depth. We are building the moderation gates and filling the archive.',
+    description: 'Growth and depth. We are filling the archive and building personal collection tools.',
     items: [
       {
         id: 'p-1',
-        title: 'Moderation',
-        desc: 'A reactive safety system. All submissions are published immediately, but community reports can auto-hide content for admin review.',
+        title: 'Personal Collections',
+        desc: 'Tools for users to curate, save, and share their own personal anthologies of wisdom.',
       },
       {
         id: 'p-2',
-        title: 'Author Control',
-        desc: 'Building the edit workflows to allow contributors to refine their submissions and manage their own data.',
-      },
-      {
-        id: 'p-3',
         title: 'Content Pipeline',
         desc: 'Ingesting our backlog of 300+ proverbs and 100+ raw poems to transform them into searchable entries.',
       },
@@ -95,11 +100,6 @@ const phases = [
       },
       {
         id: 'fut-2',
-        title: 'Personal Collections',
-        desc: 'Tools for users to curate, save, and share their own personal anthologies of wisdom.',
-      },
-      {
-        id: 'fut-3',
         title: 'Deep Discovery',
         desc: 'Thematic tagging and visualizations to connect disparate entries. Contributors will categorize themes (e.g., Love, War, Grief) directly on the submission page.',
       },

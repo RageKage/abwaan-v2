@@ -60,6 +60,7 @@ type NewSubmissionInput = {
   };
 };
 
+
 const isValidUrl = (value: string) => {
   try {
     new URL(value);
@@ -69,10 +70,13 @@ const isValidUrl = (value: string) => {
   }
 };
 
-const normalizeSource = (source?: NewSubmissionInput["source"]): SubmissionSource => {
+const normalizeSource = (
+  source?: NewSubmissionInput["source"]
+): SubmissionSource => {
   const name = String(source?.name ?? "").trim();
   const urlRaw = typeof source?.url === "string" ? source?.url.trim() : "";
-  const notesRaw = typeof source?.notes === "string" ? source?.notes.trim() : "";
+  const notesRaw =
+    typeof source?.notes === "string" ? source?.notes.trim() : "";
 
   return {
     name,
@@ -260,7 +264,8 @@ export const claimUsername = onCall<{username?: string}>(async (request) => {
   return {ok: true, username: usernameOriginal};
 });
 
-// Callable (v2): create a submission with server-side validation + search fields
+// Callable (v2): create a submission with server-side validation
+// and search fields.
 export const createSubmission = onCall<NewSubmissionInput>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
@@ -271,7 +276,9 @@ export const createSubmission = onCall<NewSubmissionInput>(async (request) => {
   const meaning = String(raw.meaning ?? "").trim();
   const title = String(raw.title ?? "").trim();
   const translation = String(raw.translation ?? "").trim();
-  const language = String(raw.language ?? "").trim().toLowerCase() as LanguageCode;
+  const language = String(raw.language ?? "")
+    .trim()
+    .toLowerCase() as LanguageCode;
   const origin = String(raw.origin ?? "").trim() as SubmissionOrigin;
 
   if (type !== "Proverb" && type !== "Poetry") {
@@ -404,6 +411,7 @@ export const createSubmission = onCall<NewSubmissionInput>(async (request) => {
 
   return {ok: true, submission: {id: submissionRef.id, ...payload}};
 });
+
 
 // Callable (v2): vote on submission (updates counters safely)
 export const voteSubmission = onCall<{

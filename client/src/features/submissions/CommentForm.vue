@@ -69,7 +69,6 @@ const handleSubmit = () => {
       <div class="md:col-span-9 p-6 md:p-8 flex flex-col gap-4">
         <label class="sr-only">Comment Content</label>
         <textarea
-        data-lenis-prevent
           :value="modelValue"
           rows="6"
           :maxlength="maxLength"

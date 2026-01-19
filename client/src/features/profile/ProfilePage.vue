@@ -124,7 +124,6 @@ const handleClaimUsername = async () => {
             <div class="group">
               <label for="settings-bio" class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Biography</label>
               <textarea
-              data-lenis-prevent
                 v-model="bio"
                 id="settings-bio"
                 rows="4"

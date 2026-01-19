@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import type { Submission } from '@/data/models/submission'
 import type { QueryDocumentSnapshot } from 'firebase/firestore'
 import { useAuthStore } from '@/features/auth/auth.store'
@@ -7,7 +7,7 @@ import { addFavorite, getFavorite, listFavoriteSubmissions, removeFavorite } fro
 
 export const useFavoritesStore = defineStore('favorites', () => {
   const items = ref<Submission[]>([])
-  const lastDoc = ref<QueryDocumentSnapshot | null>(null)
+  const lastDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const busy = ref(false)
   const error = ref<string | null>(null)
   const favoriteIds = ref<Set<string>>(new Set())

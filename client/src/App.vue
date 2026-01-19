@@ -8,6 +8,7 @@ import TheNavigation from '@/shared/navigation/TheNavigation.vue'
 import LoadingSpinner from '@/shared/components/AppLoader.vue'
 import GlobalDialog from '@/shared/components/GlobalDialog.vue'
 import Footer from '@/shared/navigation/Footer.vue'
+import AudioPlayer from '@/shared/components/AudioPlayer.vue'
 import 'vue-sonner/style.css'
 
 const route = useRoute()
@@ -15,7 +16,6 @@ const hideChrome = computed(() => route.path === '/onboarding/username')
 const hideFooter = computed(() => route.path === '/login' || hideChrome.value)
 const showNav = computed(() => route.path !== '/login' && !hideChrome.value)
 const showFooter = computed(() => !hideFooter.value)
-const isHomePage = computed(() => route.path === '/' || route.name === 'Home' || route.name === 'home')
 
 const isLoading = ref(true)
 const serverDown = ref(typeof navigator !== 'undefined' ? !navigator.onLine : false)
@@ -73,7 +73,7 @@ const PageReload = () => {
     <div class="flex-grow relative min-h-screen">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in" appear>
-          <component :is="Component" class="transition-all duration-300" :class="[!isHomePage ? 'pt-24' : 'pt-0']" />
+          <component :is="Component" class="transition-all duration-300" />
         </transition>
       </router-view>
     </div>
@@ -118,13 +118,15 @@ const PageReload = () => {
       </div>
     </transition>
 
-    <transition name="fade" :duration="700">
+    <transition name="fade">
       <LoadingSpinner v-if="isLoading" class="fixed inset-0 z-[9999]" />
     </transition>
 
     <GlobalDialog />
 
     <Toaster position="top-center" richColors />
+
+    <AudioPlayer />
 
     <Footer v-if="showFooter" class="mt-auto"></Footer>
   </div>

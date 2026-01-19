@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import type { QueryDocumentSnapshot } from 'firebase/firestore'
 import type { Comment } from '@/data/models/comment'
 import { createComment, deleteComment, listComments } from '@/data/firestore/comments.repo'
@@ -8,7 +8,7 @@ import { useProfileStore } from '@/features/profile/profile.store'
 
 export const useCommentsStore = defineStore('comments', () => {
   const items = ref<Comment[]>([])
-  const lastDoc = ref<QueryDocumentSnapshot | null>(null)
+  const lastDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const loading = ref(false)
   const saving = ref(false)
   const error = ref<string | null>(null)

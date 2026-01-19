@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { observeProfile, updateProfile, type UserProfile } from '@/data/firestore/profiles.repo'
 import { listSubmissionsByAuthor } from '@/data/firestore/submissions.repo'
 import type { Submission } from '@/data/models/submission'
@@ -8,7 +8,7 @@ import type { QueryDocumentSnapshot } from 'firebase/firestore'
 export const useProfileStore = defineStore('profile', () => {
   const profile = ref<UserProfile | null>(null)
   const submissions = ref<Submission[]>([])
-  const lastDoc = ref<QueryDocumentSnapshot | null>(null)
+  const lastDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const busy = ref(false)
   const error = ref<string | null>(null)
 

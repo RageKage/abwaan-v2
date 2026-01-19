@@ -5,13 +5,14 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
-  sendPasswordResetEmail,
   signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile as updateAuthProfile,
   type User,
 } from 'firebase/auth'
 import { auth } from '@/data/firebase/client'
+import { updateProfile as updateProfileDoc } from '@/data/firestore/profiles.repo'
 import { useProfileStore } from '@/features/profile/profile.store'
 
 let resolveAuthReady: (() => void) | null = null
@@ -51,8 +52,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string, displayName?: string) => {
+    const trimmedName = displayName?.trim() ?? ''
     const credential = await withStatus(() => createUserWithEmailAndPassword(auth, email, password))
+    if (trimmedName) {
+      await updateAuthProfile(credential.user, { displayName: trimmedName })
+      await updateProfileDoc(credential.user.uid, { displayName: trimmedName })
+    }
     return credential
   }
 
@@ -73,16 +79,6 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     await withStatus(async () => {
       await signOut(auth)
-    })
-  }
-
-  const resetPassword = async (email: string) => {
-    const normalized = email.trim()
-    if (!normalized) {
-      throw new Error('Enter your email to reset your password.')
-    }
-    await withStatus(async () => {
-      await sendPasswordResetEmail(auth, normalized)
     })
   }
 
@@ -121,7 +117,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     loginWithGoogle,
     logout,
-    resetPassword,
     waitForAuthReady,
     clearError,
   }

@@ -673,7 +673,6 @@ watch(showReportModal, async (open) => {
                     {{ isEditPoetry ? 'Verses' : 'Proverb Text' }}
                   </label>
                   <textarea
-                  data-lenis-prevent
                     v-model="editDraft.text"
                     rows="6"
                     placeholder="Begin writing here..."
@@ -695,7 +694,6 @@ watch(showReportModal, async (open) => {
                     Hidden Meaning / Context
                   </label>
                   <textarea
-                  data-lenis-prevent
                     v-model="editDraft.meaning"
                     rows="3"
                     placeholder="Explain the context..."
@@ -715,7 +713,6 @@ watch(showReportModal, async (open) => {
                     English Translation
                   </label>
                   <textarea
-                  data-lenis-prevent
                     v-model="editDraft.translation"
                     rows="3"
                     placeholder="Literal translation..."
@@ -811,7 +808,6 @@ watch(showReportModal, async (open) => {
                         Additional Notes
                       </label>
                       <textarea
-                      data-lenis-prevent
                         v-model="editDraft.source.notes"
                         rows="2"
                         class="block w-full bg-gray-50 border border-gray-200 p-3 text-sm focus:border-carrotOrange-500 focus:outline-none resize-none"
@@ -1128,7 +1124,6 @@ watch(showReportModal, async (open) => {
               Additional Notes (Optional)
             </label>
             <textarea
-            data-lenis-prevent
               v-model="reportDetails"
               ref="reportDetailsRef"
               rows="4"

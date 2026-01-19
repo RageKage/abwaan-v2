@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import type { NewSubmissionInput, Submission, SubmissionType, SubmissionStatus } from '@/data/models/submission'
 import {
   createSubmission,
@@ -20,9 +20,9 @@ export const useSubmissionsStore = defineStore('submissions', () => {
   const items = ref<Submission[]>([])
   const selected = ref<Submission | null>(null)
   const userVote = ref<1 | 0 | -1 | null>(null)
-  const lastDoc = ref<QueryDocumentSnapshot | null>(null)
-  const searchLastPrefixDoc = ref<QueryDocumentSnapshot | null>(null)
-  const searchLastKeywordDoc = ref<QueryDocumentSnapshot | null>(null)
+  const lastDoc = shallowRef<QueryDocumentSnapshot | null>(null)
+  const searchLastPrefixDoc = shallowRef<QueryDocumentSnapshot | null>(null)
+  const searchLastKeywordDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const searchHasMore = ref(false)
   const busy = ref(false)
   const error = ref<string | null>(null)

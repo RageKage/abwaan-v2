@@ -6,7 +6,7 @@ const appVersion = __APP_VERSION__
 </script>
 
 <template>
-  <div class="selection:bg-gray-900 selection:text-white font-sans text-gray-900 pt-24">
+  <div class="selection:bg-gray-900 selection:text-white font-sans text-gray-900">
     <div class="max-w-[1600px] mx-auto border-l border-r border-gray-200">
       <header class="border-b border-gray-200">
         <div class="grid lg:grid-cols-12 min-h-[85vh]">

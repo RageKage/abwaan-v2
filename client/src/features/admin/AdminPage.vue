@@ -171,7 +171,7 @@ watch([activeReportStatus, activeTab], () => {
 </script>
 
 <template>
-  <main class="min-h-screen w-full bg-white font-sans text-gray-900 pt-24 pb-20">
+  <main class="min-h-screen w-full bg-white font-sans text-gray-900 pb-20">
     <div class="max-w-[1800px] mx-auto border-x border-gray-200">
       <header class="border-b border-gray-200">
         <div class="grid grid-cols-12 min-h-[200px]">

@@ -14,6 +14,7 @@ const activeTab = ref<'all' | SubmissionType>('all')
 const sortBy = ref<'createdAt' | 'voteScore'>('createdAt')
 const activeLanguage = ref<'all' | 'so' | 'en'>('all')
 const searchTerm = ref('')
+const activeSearchTerm = ref('')
 const isLoadingMore = ref(false)
 
 // --- Scroll & Visibility State ---
@@ -41,9 +42,12 @@ const sortOptions = [
 // --- Computed ---
 const activeType = computed(() => (activeTab.value === 'all' ? undefined : activeTab.value))
 const activeLang = computed(() => (activeLanguage.value === 'all' ? undefined : activeLanguage.value))
-const hasSearch = computed(() => searchTerm.value.trim().length > 0)
+const hasSearch = computed(() => activeSearchTerm.value.trim().length > 0)
 const hasFilters = computed(
-  () => activeTab.value !== 'all' || activeLanguage.value !== 'all' || sortBy.value !== 'createdAt',
+  () =>
+    activeTab.value !== 'all' ||
+    activeLanguage.value !== 'all' ||
+    sortBy.value !== 'createdAt',
 )
 const searchCountLabel = computed(() => {
   if (!hasSearch.value) return ''
@@ -64,7 +68,13 @@ const loadLatest = async () => {
 
 const handleSearch = async () => {
   isLoadingMore.value = false
-  await submissionsStore.search(searchTerm.value)
+  const term = searchTerm.value.trim()
+  activeSearchTerm.value = term
+  if (!term) {
+    await loadLatest()
+    return
+  }
+  await submissionsStore.search(term)
 }
 
 const handleRetry = async () => {
@@ -83,11 +93,13 @@ const handleResetFilters = () => {
 
 const handleClearSearch = () => {
   searchTerm.value = ''
+  activeSearchTerm.value = ''
+  void loadLatest()
 }
 
 // --- Empty State Logic ---
 const emptyStateTitle = computed(() => {
-  if (hasSearch.value) return `No results for "${searchTerm.value.trim()}"`
+  if (hasSearch.value) return `No results for "${activeSearchTerm.value}"`
   if (hasFilters.value) return 'No records match your filters'
   return 'The archive is empty'
 })
@@ -139,7 +151,7 @@ const handleLoadMore = async () => {
   isLoadingMore.value = true
   try {
     if (hasSearch.value) {
-      await submissionsStore.search(searchTerm.value, true)
+      await submissionsStore.search(activeSearchTerm.value, true)
     } else {
       await submissionsStore.loadLatest(activeType.value, true, sortBy.value, activeLang.value)
     }
@@ -182,13 +194,7 @@ onUnmounted(() => {
 })
 
 watch([activeType, sortBy, activeLanguage], () => {
-  if (!searchTerm.value) {
-    void loadLatest()
-  }
-})
-
-watch(searchTerm, (newTerm) => {
-  if (!newTerm) {
+  if (!hasSearch.value) {
     void loadLatest()
   }
 })

@@ -5,9 +5,10 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDatabaseStatus } from '@/shared/utils/dbStatus'
 
+// Database Status Logic
 const { status, lastChecked } = useDatabaseStatus()
 
 const statusLabel = computed(() => {
@@ -28,11 +29,14 @@ const statusRingClass = computed(() => {
   return 'bg-gray-300'
 })
 
+// Newsletter Logic (New)
+const email = ref('')
+
 const appVersion = __APP_VERSION__
 
 const lastCheckedLabel = computed(() => {
-  if (!lastChecked.value) return 'Last checked: —'
-  return `Last checked: ${lastChecked.value.toLocaleString()}`
+  if (!lastChecked.value) return 'Last heartbeat: —'
+  return `Heartbeat: ${lastChecked.value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
 })
 </script>
 
@@ -58,8 +62,6 @@ const lastCheckedLabel = computed(() => {
                 <img
                   src="@/assets/logo/Abwaan_4.svg"
                   alt="Abwaan"
-                  loading="lazy"
-                  decoding="async"
                   class="w-5 h-5 grayscale group-hover:grayscale-0 transition-all"
                 />
               </div>
@@ -137,39 +139,29 @@ const lastCheckedLabel = computed(() => {
           <span
             class="block font-mono text-xs text-gray-400 uppercase tracking-widest mb-8 border-l-2 border-gray-900 pl-3"
           >
-            02. Network
+            02. Connect
           </span>
           <ul class="space-y-4">
-            <!-- <li class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
-              <a href="#" class="flex items-baseline justify-between group">
+            <li>
+              <router-link to="/contribute" class="flex items-baseline justify-between group">
                 <span
                   class="text-lg font-serif text-gray-900 group-hover:translate-x-2 transition-transform duration-300"
                 >
-                  GitHub
+                  Contribute
                 </span>
-                <span class="text-xs text-gray-300 group-hover:text-gray-900">↗</span>
-              </a>
+                <span class="text-xs text-gray-300 group-hover:text-gray-900">→</span>
+              </router-link>
             </li>
             <li>
-              <a href="#" class="flex items-baseline justify-between group">
+              <a href="mailto:nimanahmed000@gmail.com" class="flex items-baseline justify-between group">
                 <span
                   class="text-lg font-serif text-gray-900 group-hover:translate-x-2 transition-transform duration-300"
                 >
-                  Twitter / X
+                  Contact
                 </span>
-                <span class="text-xs text-gray-300 group-hover:text-gray-900">↗</span>
+                <span class="text-xs text-gray-300 group-hover:text-gray-900">@</span>
               </a>
             </li>
-            <li>
-              <span class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
-                <span class="text-lg font-serif text-gray-400">Instagram</span>
-                <span class="font-mono text-[9px] uppercase border border-gray-200 px-1 rounded">Soon</span>
-              </span>
-            </li> -->
-            <span class="flex items-baseline justify-between opacity-50 cursor-not-allowed">
-              <span class="text-lg font-serif text-gray-400">Coming</span>
-              <span class="font-mono text-[9px] uppercase border border-gray-200 px-1 rounded">Soon</span>
-            </span>
           </ul>
         </div>
 
@@ -189,25 +181,34 @@ const lastCheckedLabel = computed(() => {
             <p class="text-xs text-gray-500 font-mono">{{ lastCheckedLabel }}</p>
           </div>
 
-          <div class="mt-8">
-            <label class="block font-serif text-gray-900 mb-2">Stay updated</label>
-            <div class="flex border-gray-300 focus-within:border-carrotOrange-500 transition-colors">
-              <p class="text-xs font-bold uppercase tracking-widest">More coming</p>
-            </div>
-          </div>
+          <!-- <div class="mt-8">
+            <label class="block font-serif text-gray-900 mb-4">Stay updated</label>
+
+            <form class="relative group">
+              <input
+                v-model="email"
+                type="email"
+                placeholder="Enter email address"
+                class="w-full bg-transparent border-b border-gray-300 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:border-carrotOrange-500 transition-colors disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                class="absolute right-0 top-2 text-gray-400 hover:text-carrotOrange-600 transition-colors disabled:text-green-600"
+              >
+                <span>→</span>
+              </button>
+            </form>
+          </div> -->
         </div>
       </div>
 
       <div
-        class="grid md:grid-cols-2 p-6 md:p-8 text-[10px] md:text-xs font-mono uppercase tracking-widest text-gray-500"
+        class="grid md:grid-cols-1 p-6 md:p-8 text-[10px] md:text-xs font-mono uppercase tracking-widest text-gray-500"
       >
-        <div class="flex gap-6">
+        <div class="flex gap-6 justify-between">
           <span>&copy; {{ new Date().getFullYear() }} Abwaan Project</span>
-        </div>
-        <div class="flex gap-6 md:justify-end mt-4 md:mt-0">
-          <!-- <a href="#" class="hover:text-gray-900 transition-colors">Privacy</a>
-          <a href="#" class="hover:text-gray-900 transition-colors">Terms</a> -->
-          <span class="text-carrotOrange-600">V{{ appVersion }}</span>
+
+          <span class="text-carrotOrange-600 border-gray-300 pl-6 ml-2">V{{ appVersion }}</span>
         </div>
       </div>
     </div>

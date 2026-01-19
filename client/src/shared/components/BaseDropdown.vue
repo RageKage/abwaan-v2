@@ -1,8 +1,10 @@
 <script setup lang="ts" generic="T extends string | number | symbol">
-import { ref, onMounted, onUnmounted, nextTick, watch, toRefs } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick, watch, toRefs } from 'vue'
+
+type DropdownOption = { key: T; label: string }
 
 const props = defineProps<{
-  options: ReadonlyArray<{ key: T; label: string }>
+  options: ReadonlyArray<DropdownOption>
   modelValue: T
   label?: string
 }>()
@@ -38,7 +40,11 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 const getSelectedIndex = () =>
-  options.value.findIndex((option) => option.key === modelValue.value)
+  options.value.findIndex((option: DropdownOption) => option.key === modelValue.value)
+
+const selectedLabel = computed(
+  () => options.value.find((option: DropdownOption) => option.key === modelValue.value)?.label ?? '',
+)
 
 const focusOptionAt = async (index: number) => {
   const maxIndex = options.value.length - 1
@@ -146,7 +152,7 @@ watch(isOpen, async (open) => {
       @keydown="handleTriggerKeydown"
     >
       <span class="text-gray-400" v-if="label">{{ label }}:</span>
-      <span>{{ options.find((o) => o.key === modelValue)?.label }}</span>
+      <span>{{ selectedLabel }}</span>
       <svg
         class="h-3 w-3 transition-transform duration-300"
         :class="isOpen ? 'rotate-180 text-carrotOrange-600' : 'text-gray-300'"
@@ -172,7 +178,7 @@ watch(isOpen, async (open) => {
     >
       <div
         v-if="isOpen"
-        class="absolute right-0 top-full z-[100] w-56 bg-white border border-gray-200 shadow-2xl ring-1 ring-black/5"
+        class="absolute right-0 top-full mt-0 min-w-full w-full bg-white border border-gray-200 border-t-0 shadow-xl z-50"
         role="listbox"
         :id="listboxId"
         :aria-labelledby="buttonId"
@@ -186,11 +192,11 @@ watch(isOpen, async (open) => {
             role="option"
             :id="`${listboxId}-option-${String(option.key)}`"
             :aria-selected="modelValue === option.key"
-            :tabindex="optionIndex === activeIndex ? 0 : -1"
+            :tabindex="Number(optionIndex) === activeIndex ? 0 : -1"
             class="flex items-center justify-between px-6 py-4 text-xs font-bold uppercase tracking-widest text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
             :class="[modelValue === option.key ? 'text-carrotOrange-600 bg-gray-50/50' : 'text-gray-500']"
             @click.stop="select(option.key)"
-            @focus="activeIndex = optionIndex"
+            @focus="activeIndex = Number(optionIndex)"
           >
             {{ option.label }}
             <span v-if="modelValue === option.key" class="w-1.5 h-1.5 rounded-full bg-carrotOrange-600"></span>

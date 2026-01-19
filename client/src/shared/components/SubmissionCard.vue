@@ -15,6 +15,7 @@ const props = defineProps<{
   index?: number
 }>()
 
+
 const goToSubmission = () => {
   router.push(`/s/${props.submission.id}`)
 }
