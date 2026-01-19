@@ -183,9 +183,6 @@ const handleGoogleLogin = async () => {
           <p v-if="authStore.error" class="text-center text-xs font-mono text-red-500 uppercase mt-4">
             /// Error: {{ authStore.error }}
           </p>
-          <p v-if="resetMessage" class="text-center text-xs font-mono text-emerald-600 uppercase mt-4">
-            /// {{ resetMessage }}
-          </p>
         </div>
 
         <div class="p-6 bg-gray-50 border-t border-gray-200 text-center">
