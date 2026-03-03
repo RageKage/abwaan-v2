@@ -23,6 +23,8 @@ export const useSubmissionsStore = defineStore('submissions', () => {
   const lastDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const searchLastPrefixDoc = shallowRef<QueryDocumentSnapshot | null>(null)
   const searchLastKeywordDoc = shallowRef<QueryDocumentSnapshot | null>(null)
+  const searchPrefixDone = ref(false)
+  const searchKeywordDone = ref(false)
   const searchHasMore = ref(false)
   const busy = ref(false)
   const error = ref<string | null>(null)
@@ -85,15 +87,20 @@ export const useSubmissionsStore = defineStore('submissions', () => {
       lastDoc.value = null
       searchLastPrefixDoc.value = null
       searchLastKeywordDoc.value = null
+      searchPrefixDone.value = false
+      searchKeywordDone.value = false
     }
 
     error.value = null
     try {
-      const { items: newItems, lastPrefixDoc, lastKeywordDoc, hasMore } = await searchSubmissions(term, {
-        limit: 20,
-        lastPrefixDoc: loadMore ? searchLastPrefixDoc.value : null,
-        lastKeywordDoc: loadMore ? searchLastKeywordDoc.value : null,
-      })
+      const { items: newItems, lastPrefixDoc, lastKeywordDoc, hasMore, prefixHasMore, keywordHasMore } =
+        await searchSubmissions(term, {
+          limit: 20,
+          lastPrefixDoc: loadMore ? searchLastPrefixDoc.value : null,
+          lastKeywordDoc: loadMore ? searchLastKeywordDoc.value : null,
+          skipPrefix: loadMore && searchPrefixDone.value,
+          skipKeyword: loadMore && searchKeywordDone.value,
+        })
 
       if (loadMore) {
         const existingIds = new Set(items.value.map((item) => item.id))
@@ -110,6 +117,8 @@ export const useSubmissionsStore = defineStore('submissions', () => {
 
       searchLastPrefixDoc.value = lastPrefixDoc
       searchLastKeywordDoc.value = lastKeywordDoc
+      if (!prefixHasMore) searchPrefixDone.value = true
+      if (!keywordHasMore) searchKeywordDone.value = true
       searchHasMore.value = hasMore
     } catch (err) {
       setError(err, 'Failed to search submissions')
@@ -170,16 +179,11 @@ export const useSubmissionsStore = defineStore('submissions', () => {
     busy.value = true
     error.value = null
     try {
-      await updateSubmission(id, {
-        ...patch,
-        username: selected.value?.username ?? null,
-        updatedBy: authStore.user.uid,
-      })
-      const patchWithTimestamp = { ...patch, updatedAt: Date.now(), updatedBy: authStore.user.uid }
+      const updated = await updateSubmission(id, patch)
       if (selected.value?.id === id) {
-        selected.value = { ...selected.value, ...patchWithTimestamp }
+        selected.value = updated
       }
-      items.value = items.value.map((item) => (item.id === id ? { ...item, ...patchWithTimestamp } : item))
+      items.value = items.value.map((item) => (item.id === id ? updated : item))
     } catch (err) {
       setError(err, 'Failed to update submission')
       throw err

@@ -3,6 +3,7 @@ import { computed, nextTick, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { LanguageCode, SubmissionOrigin, SubmissionType as ModelSubmissionType } from '@/data/models/submission'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
+import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import {
   validateSubmissionDraft,
   type OriginType,
@@ -154,9 +155,7 @@ const handleSubmit = async () => {
                   <option value="Poetry">Poetry (Gabay)</option>
                 </select>
                 <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDownIcon class="h-4 w-4" />
                 </div>
               </div>
               <p
@@ -181,9 +180,7 @@ const handleSubmit = async () => {
                   <option value="en">English</option>
                 </select>
                 <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDownIcon class="h-4 w-4" />
                 </div>
               </div>
               <p
@@ -321,9 +318,7 @@ const handleSubmit = async () => {
                   <option value="unknown">Unknown (Folklore)</option>
                 </select>
                 <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <ChevronDownIcon class="h-4 w-4" />
                 </div>
               </div>
               <p

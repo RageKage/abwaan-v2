@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
+import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { useProfileStore } from '@/features/profile/profile.store'
 import { useFavoritesStore } from '@/features/favorites/favorites.store'
@@ -607,9 +608,7 @@ watch(showReportModal, async (open) => {
                       <option value="Poetry">Poetry (Gabay)</option>
                     </select>
                     <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDownIcon class="h-4 w-4" />
                     </div>
                   </div>
                   <p
@@ -635,9 +634,7 @@ watch(showReportModal, async (open) => {
                       <option value="en">English</option>
                     </select>
                     <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDownIcon class="h-4 w-4" />
                     </div>
                   </div>
                   <p
@@ -744,9 +741,7 @@ watch(showReportModal, async (open) => {
                       <option value="unknown">Unknown (Folklore)</option>
                     </select>
                     <div class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-gray-400">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDownIcon class="h-4 w-4" />
                     </div>
                   </div>
                   <p

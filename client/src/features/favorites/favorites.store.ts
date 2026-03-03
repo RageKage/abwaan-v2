@@ -12,6 +12,7 @@ export const useFavoritesStore = defineStore('favorites', () => {
   const error = ref<string | null>(null)
   const favoriteIds = ref<Set<string>>(new Set())
   const statusLoaded = ref<Set<string>>(new Set())
+  const togglingIds = ref<Set<string>>(new Set())
 
   const hasFavorites = computed(() => items.value.length > 0)
 
@@ -24,9 +25,11 @@ export const useFavoritesStore = defineStore('favorites', () => {
     lastDoc.value = null
     favoriteIds.value = new Set()
     statusLoaded.value = new Set()
+    togglingIds.value = new Set()
   }
 
   const isFavorited = (submissionId: string) => favoriteIds.value.has(submissionId)
+  const isToggling = (submissionId: string) => togglingIds.value.has(submissionId)
 
   const markFavorite = (submissionId: string, value: boolean) => {
     const next = new Set(favoriteIds.value)
@@ -113,26 +116,29 @@ export const useFavoritesStore = defineStore('favorites', () => {
       throw new Error('Please log in again.')
     }
 
-    busy.value = true
+    const id = submission.id
+    togglingIds.value = new Set([...togglingIds.value, id])
     error.value = null
 
-    const currentlySaved = isFavorited(submission.id)
+    const currentlySaved = isFavorited(id)
     try {
       if (currentlySaved) {
-        await removeFavorite(authStore.user.uid, submission.id)
-        markFavorite(submission.id, false)
-        items.value = items.value.filter((item) => item.id !== submission.id)
+        await removeFavorite(authStore.user.uid, id)
+        markFavorite(id, false)
+        items.value = items.value.filter((item) => item.id !== id)
       } else {
-        await addFavorite(authStore.user.uid, submission.id)
-        markFavorite(submission.id, true)
-        items.value = [submission, ...items.value.filter((item) => item.id !== submission.id)]
+        await addFavorite(authStore.user.uid, id)
+        markFavorite(id, true)
+        items.value = [submission, ...items.value.filter((item) => item.id !== id)]
       }
-      markStatusLoaded(submission.id)
+      markStatusLoaded(id)
     } catch (err) {
       setError(err, 'Failed to update favorites')
       throw err
     } finally {
-      busy.value = false
+      const next = new Set(togglingIds.value)
+      next.delete(id)
+      togglingIds.value = next
     }
   }
 
@@ -143,6 +149,7 @@ export const useFavoritesStore = defineStore('favorites', () => {
     error,
     hasFavorites,
     isFavorited,
+    isToggling,
     ensureFavoriteStatus,
     loadFavorites,
     toggleFavorite,

@@ -1,10 +1,45 @@
 import {initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {logger} from "firebase-functions";
 import {auth, firestore} from "firebase-functions/v1";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 
 initializeApp();
 const db = getFirestore();
+
+/**
+ * Enforces a per-user, per-action rate limit using Firestore.
+ * Throws HttpsError("resource-exhausted") if the limit is exceeded.
+ */
+async function checkRateLimit(
+  uid: string,
+  action: string,
+  maxCalls: number,
+  windowSeconds: number
+): Promise<void> {
+  const ref = db.collection("rateLimits").doc(`${uid}_${action}`);
+  const now = Date.now();
+  const windowMs = windowSeconds * 1000;
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.data();
+
+    if (!data || now - data.windowStart >= windowMs) {
+      tx.set(ref, {count: 1, windowStart: now});
+      return;
+    }
+
+    if (data.count >= maxCalls) {
+      throw new HttpsError(
+        "resource-exhausted",
+        `Too many requests. Try again later.`
+      );
+    }
+
+    tx.update(ref, {count: FieldValue.increment(1)});
+  });
+}
 
 /**
  * Normalizes a username by trimming whitespace and converting to lowercase.
@@ -149,32 +184,39 @@ export const onAuthUserCreate = auth.user().onCreate(async (user) => {
   const providerId = user.providerData?.[0]?.providerId ?? null;
   const now = Date.now();
 
+  logger.info("Creating profile for new user", {uid, providerId});
+
   const profileRef = db.collection("profiles").doc(uid);
   const privateRef = db.collection("privateUsers").doc(uid);
 
-  await Promise.all([
-    profileRef.set(
-      {
-        displayName: user.displayName ?? "",
-        username: null,
-        bio: "",
-        photoURL: user.photoURL ?? null,
-        createdAt: now,
-        lastLoginAt: now,
-        submissionCount: 0,
-        isAdmin: false,
-      },
-      {merge: true}
-    ),
-    privateRef.set(
-      {
-        email,
-        providerId,
-        lastLoginAt: now,
-      },
-      {merge: true}
-    ),
-  ]);
+  try {
+    await Promise.all([
+      profileRef.set(
+        {
+          displayName: user.displayName ?? "",
+          username: null,
+          bio: "",
+          photoURL: user.photoURL ?? null,
+          createdAt: now,
+          lastLoginAt: now,
+          submissionCount: 0,
+          isAdmin: false,
+        },
+        {merge: true}
+      ),
+      privateRef.set(
+        {
+          email,
+          providerId,
+          lastLoginAt: now,
+        },
+        {merge: true}
+      ),
+    ]);
+  } catch (err) {
+    logger.error("Failed to create profile", {uid, error: err});
+    throw err;
+  }
 });
 
 // Firestore trigger: keep profile submissionCount in sync
@@ -192,14 +234,39 @@ export const onSubmissionCreate = firestore
 
 export const onSubmissionDelete = firestore
   .document("submissions/{id}")
-  .onDelete(async (snapshot) => {
+  .onDelete(async (snapshot, context) => {
     const data = snapshot.data();
     const uid = data?.uid;
-    if (!uid) return;
-    await db.collection("profiles").doc(uid).set(
-      {submissionCount: FieldValue.increment(-1)},
-      {merge: true}
-    );
+    const submissionId = context.params.id;
+
+    logger.info("Deleting submission and subcollections", {submissionId, uid});
+
+    try {
+      // 1. Decrement the author's submission count
+      const profileUpdate = uid
+        ? db.collection("profiles").doc(uid).set(
+          {submissionCount: FieldValue.increment(-1)},
+          {merge: true}
+        )
+        : Promise.resolve();
+
+      // 2. Delete all subcollection documents (votes, comments, reports)
+      const subRef = db.collection("submissions").doc(submissionId);
+      const subcollections = ["votes", "comments", "reports"];
+      const writer = db.bulkWriter();
+
+      for (const name of subcollections) {
+        const snap = await subRef.collection(name).select().get();
+        for (const doc of snap.docs) {
+          writer.delete(doc.ref);
+        }
+      }
+
+      await Promise.all([profileUpdate, writer.close()]);
+    } catch (err) {
+      logger.error("Failed to clean up submission", {submissionId, error: err});
+      throw err;
+    }
   });
 
 // Firestore trigger: auto-hide submissions after 3 distinct reports
@@ -225,6 +292,9 @@ export const onReportCreate = firestore
       };
 
       if (data.status === "published" && nextCount >= REPORT_THRESHOLD) {
+        logger.warn("Auto-hiding submission due to reports", {
+          submissionId, reportCount: nextCount,
+        });
         updates.status = "hidden";
         updates.statusChangedAt = Date.now();
         updates.statusChangedBy = "system";
@@ -239,6 +309,7 @@ export const onReportCreate = firestore
 export const claimUsername = onCall<{username?: string}>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
+  await checkRateLimit(uid, "claimUsername", 5, 3600);
 
   const raw = String(request.data?.username ?? "");
   const {usernameOriginal, usernameLower} = normalizeUsername(raw);
@@ -269,6 +340,7 @@ export const claimUsername = onCall<{username?: string}>(async (request) => {
 export const createSubmission = onCall<NewSubmissionInput>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
+  await checkRateLimit(uid, "createSubmission", 10, 3600);
 
   const raw = request.data ?? {};
   const type = String(raw.type ?? "").trim() as SubmissionType;
@@ -420,6 +492,7 @@ export const voteSubmission = onCall<{
 }>(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Login required.");
+  await checkRateLimit(uid, "voteSubmission", 60, 60);
 
   const submissionId = String(request.data?.submissionId ?? "");
   const value = Number(request.data?.value); // 1, -1, or 0
@@ -503,4 +576,222 @@ export const voteSubmission = onCall<{
   });
 
   return {ok: true};
+});
+
+// Callable (v2): update a submission with server-side validation
+// and search field rebuild (single source of truth for search logic).
+type UpdateSubmissionInput = {
+  id?: string;
+  patch?: {
+    type?: string;
+    title?: string;
+    text?: string;
+    meaning?: string;
+    translation?: string;
+    language?: string;
+    origin?: string;
+    source?: {
+      name?: string;
+      url?: string | null;
+      notes?: string | null;
+    };
+  };
+};
+
+export const updateSubmission = onCall<UpdateSubmissionInput>(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "Login required.");
+  await checkRateLimit(uid, "updateSubmission", 30, 3600);
+
+  const id = String(request.data?.id ?? "").trim();
+  if (!id) throw new HttpsError("invalid-argument", "Missing submission id.");
+
+  // Read existing document
+  const submissionRef = db.collection("submissions").doc(id);
+  const snap = await submissionRef.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Submission not found.");
+  const existing = snap.data()!;
+
+  // Authorization: owner or admin
+  const profileSnap = await db.collection("profiles").doc(uid).get();
+  const profile = profileSnap.exists ? profileSnap.data() : null;
+  const callerIsAdmin = profile?.isAdmin === true;
+  if (existing.uid !== uid && !callerIsAdmin) {
+    throw new HttpsError(
+      "permission-denied",
+      "You can only edit your own submissions."
+    );
+  }
+
+  // Build sanitized patch from input (only editable fields)
+  const raw = request.data?.patch ?? {};
+  const patch: Record<string, unknown> = {};
+
+  if (raw.type !== undefined) {
+    const type = String(raw.type).trim();
+    if (type !== "Proverb" && type !== "Poetry") {
+      throw new HttpsError(
+        "invalid-argument",
+        "Type must be Proverb or Poetry."
+      );
+    }
+    patch.type = type;
+  }
+
+  if (raw.text !== undefined) {
+    const text = String(raw.text).trim();
+    if (!text) {
+      throw new HttpsError("invalid-argument", "Text is required.");
+    }
+    if (text.length > SUBMISSION_TEXT_MAX) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Text must be ${SUBMISSION_TEXT_MAX} characters or fewer.`
+      );
+    }
+    patch.text = text;
+  }
+
+  if (raw.meaning !== undefined) {
+    const meaning = String(raw.meaning).trim();
+    if (meaning.length > SUBMISSION_MEANING_MAX) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Meaning must be ${SUBMISSION_MEANING_MAX} characters or fewer.`
+      );
+    }
+    patch.meaning = meaning;
+  }
+
+  if (raw.translation !== undefined) {
+    const translation = String(raw.translation).trim();
+    if (translation.length > SUBMISSION_TRANSLATION_MAX) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Translation must be ${SUBMISSION_TRANSLATION_MAX} characters or fewer.`
+      );
+    }
+    patch.translation = translation || null;
+  }
+
+  if (raw.language !== undefined) {
+    const language = String(raw.language).trim().toLowerCase();
+    if (language !== "so" && language !== "en") {
+      throw new HttpsError(
+        "invalid-argument",
+        "Language must be en or so."
+      );
+    }
+    patch.language = language;
+  }
+
+  if (raw.origin !== undefined) {
+    const origin = String(raw.origin).trim();
+    if (origin !== "original" && origin !== "shared" && origin !== "unknown") {
+      throw new HttpsError(
+        "invalid-argument",
+        "Origin must be original, shared, or unknown."
+      );
+    }
+    patch.origin = origin;
+  }
+
+  if (raw.source !== undefined) {
+    const resolvedOrigin = (patch.origin ?? existing.origin) as string;
+    if (resolvedOrigin === "shared") {
+      const source = normalizeSource(raw.source);
+      if (!source.name) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Source name is required."
+        );
+      }
+      if (source.url && !isValidUrl(source.url)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Source URL is invalid."
+        );
+      }
+      patch.source = source;
+    } else {
+      patch.source = null;
+    }
+  }
+
+  // No-op guard
+  if (Object.keys(patch).length === 0) {
+    return {ok: true, submission: {id, ...existing}};
+  }
+
+  // Resolve merged values for title validation and search rebuild.
+  // Reading from the existing document fixes the bug where missing
+  // patch fields would fall back to empty string.
+  const resolvedType = (patch.type ?? existing.type) as SubmissionType;
+  const resolvedTitle = String(
+    patch.title !== undefined ? patch.title : (existing.title ?? "")
+  ).trim();
+  const resolvedText = String(patch.text ?? existing.text ?? "").trim();
+  const resolvedMeaning = String(
+    patch.meaning ?? existing.meaning ?? ""
+  ).trim();
+
+  // Title validation (depends on resolved type)
+  if (raw.title !== undefined) {
+    patch.title = String(raw.title).trim();
+  }
+
+  if (resolvedType === "Poetry") {
+    const title = (patch.title !== undefined
+      ? String(patch.title).trim()
+      : resolvedTitle);
+    if (!title) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Title is required for Poetry."
+      );
+    }
+    if (title.length < SUBMISSION_TITLE_MIN) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Title must be at least ${SUBMISSION_TITLE_MIN} characters.`
+      );
+    }
+    if (title.length > SUBMISSION_TITLE_MAX) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Title must be ${SUBMISSION_TITLE_MAX} characters or fewer.`
+      );
+    }
+    patch.title = title;
+  } else {
+    // Proverbs have no title — clear it if type changed to Proverb
+    if ("type" in patch) {
+      patch.title = null;
+    }
+  }
+
+  // Rebuild search fields from merged data (single source of truth)
+  const contentChanged = ["title", "text", "meaning", "type"].some(
+    (key) => key in patch
+  );
+  if (contentChanged) {
+    const searchFields = buildSubmissionSearchFields({
+      type: resolvedType,
+      title: resolvedType === "Poetry" ? resolvedTitle : "",
+      text: resolvedText,
+      meaning: resolvedMeaning,
+      username: (existing.username ?? null) as string | null,
+    });
+    patch.searchIndex = searchFields.searchIndex;
+    patch.searchKeywords = searchFields.searchKeywords;
+  }
+
+  // Set metadata
+  patch.updatedAt = Date.now();
+  patch.updatedBy = uid;
+
+  await submissionRef.update(patch);
+
+  const merged = {...existing, ...patch, id};
+  return {ok: true, submission: merged};
 });

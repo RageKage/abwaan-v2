@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { SubmissionType } from '@/data/models/submission'
 import { useSubmissionsStore } from '@/features/submissions/submissions.store'
+import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import SubmissionCard from '@/shared/components/SubmissionCard.vue'
 import LoadMore from '@/shared/components/LoadMore.vue'
 import BaseDropdown from '@/shared/components/BaseDropdown.vue'
@@ -224,14 +225,7 @@ watch([activeType, sortBy, activeLanguage], () => {
 
         <div class="lg:col-span-5 flex items-center px-6 bg-white group hover:bg-gray-50 transition-colors">
           <div class="w-full relative flex items-center">
-            <svg class="w-4 h-4 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <SearchIcon class="w-4 h-4 text-gray-400 mr-3" />
             <input
               v-model="searchTerm"
               @keydown.enter="handleSearch"
