@@ -9,6 +9,7 @@ import LoadingSpinner from '@/shared/components/AppLoader.vue'
 import GlobalDialog from '@/shared/components/GlobalDialog.vue'
 import Footer from '@/shared/navigation/Footer.vue'
 import AudioPlayer from '@/shared/components/AudioPlayer.vue'
+import { useAuthStore } from '@/features/auth/auth.store'
 import 'vue-sonner/style.css'
 
 const route = useRoute()
@@ -29,7 +30,7 @@ const handleOffline = () => {
   serverDown.value = true
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Initialize Lenis Smooth Scroll
   lenis = new Lenis({
     autoRaf: true, // Automatically handles the requestAnimationFrame loop
@@ -38,9 +39,23 @@ onMounted(() => {
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
 
-  setTimeout(() => {
-    isLoading.value = false
-  }, 2000)
+  // Dismiss the splash screen once Firebase Auth resolves (knows whether
+  // a user session exists). A minimum delay prevents a jarring flash on
+  // fast connections; the safety cap prevents an infinite loader if auth
+  // somehow never resolves.
+  const MIN_SPLASH_MS = 400
+  const MAX_SPLASH_MS = 5000
+  const authStore = useAuthStore()
+
+  await Promise.race([
+    Promise.all([
+      authStore.waitForAuthReady(),
+      new Promise<void>((r) => setTimeout(r, MIN_SPLASH_MS)),
+    ]),
+    new Promise<void>((r) => setTimeout(r, MAX_SPLASH_MS)),
+  ])
+
+  isLoading.value = false
 })
 
 onBeforeUnmount(() => {
@@ -136,24 +151,6 @@ const PageReload = () => {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* LENIS SMOOTH SCROLL CSS */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
 }
 
 /* TRANSITIONS */

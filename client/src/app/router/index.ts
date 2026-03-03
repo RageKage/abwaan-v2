@@ -105,7 +105,6 @@ router.beforeEach(async (to) => {
   }
 
   if (isAuthed && !isOnboardingRoute && !isAuthRoute) {
-    profileStore.start(authStore.user!.uid)
     await profileStore.waitForProfile()
     if (!profileStore.profile || profileStore.profile.username === null) {
       return { path: '/onboarding/username' }

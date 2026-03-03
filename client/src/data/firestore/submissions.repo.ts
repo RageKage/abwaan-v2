@@ -14,7 +14,7 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/data/firebase/client'
-import { createSubmission as createSubmissionCallable } from '@/data/functions/submissions'
+import { createSubmission as createSubmissionCallable, updateSubmissionCallable } from '@/data/functions/submissions'
 import type {
   NewSubmissionInput,
   Submission,
@@ -23,105 +23,6 @@ import type {
 } from '@/data/models/submission'
 
 type SubmissionStatusFilter = SubmissionStatus | 'all'
-type SubmissionPublicFields = Partial<
-  Pick<
-    Submission,
-    | 'title'
-    | 'text'
-    | 'meaning'
-    | 'translation'
-    | 'type'
-    | 'language'
-    | 'origin'
-    | 'source'
-    | 'status'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'updatedBy'
-    | 'searchIndex'
-    | 'searchKeywords'
-  >
->
-
-const BANNED_KEYS = ['email', 'providerId', 'privateUsers', 'uid', 'username']
-
-export const pickSubmissionPublicFields = (input: Record<string, unknown>): SubmissionPublicFields => {
-  const allowedKeys = new Set([
-    'title',
-    'text',
-    'meaning',
-    'translation',
-    'type',
-    'language',
-    'origin',
-    'source',
-    'status',
-    'createdAt',
-    'updatedAt',
-    'updatedBy',
-    'searchIndex',
-    'searchKeywords',
-  ])
-
-  const bannedKeys = Object.keys(input).filter((key) => BANNED_KEYS.includes(key))
-  if (import.meta.env.DEV && bannedKeys.length > 0) {
-    console.warn('Ignoring banned keys in submission payload:', bannedKeys)
-  }
-
-  return Object.fromEntries(Object.entries(input).filter(([key]) => allowedKeys.has(key))) as SubmissionPublicFields
-}
-
-const SEARCH_KEYWORD_LIMIT = 60
-const SEARCH_SOURCE_LIMIT = 600
-const SEARCH_TOKEN_MIN = 2
-const SEARCH_TOKEN_MAX = 24
-
-export const buildSubmissionSearchFields = ({
-  type,
-  title,
-  text,
-  meaning,
-  username,
-}: {
-  type: SubmissionType
-  title: string
-  text: string
-  meaning: string
-  username?: string | null
-}) => {
-  const normalizedTitle = title.trim()
-  const normalizedText = text.trim()
-  const normalizedMeaning = meaning.trim()
-  const normalizedType = type.trim()
-
-  const searchIndex = (normalizedType === 'Poetry' ? normalizedTitle : normalizedText).toLowerCase()
-
-  const tokenize = (value: string) =>
-    value
-      .slice(0, SEARCH_SOURCE_LIMIT)
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((token) => token.length >= SEARCH_TOKEN_MIN && token.length <= SEARCH_TOKEN_MAX)
-
-  const tokens = [
-    normalizedType.toLowerCase(),
-    ...(username ? [username.toLowerCase()] : []),
-    ...tokenize(normalizedTitle),
-    ...tokenize(normalizedText),
-    ...tokenize(normalizedMeaning),
-  ]
-
-  const searchKeywords: string[] = []
-  const seen = new Set<string>()
-  for (const token of tokens) {
-    if (seen.has(token)) continue
-    seen.add(token)
-    searchKeywords.push(token)
-    if (searchKeywords.length >= SEARCH_KEYWORD_LIMIT) break
-  }
-
-  return { searchIndex, searchKeywords }
-}
 
 export const normalizeSubmission = (id: string, data: Partial<Submission>): Submission => {
   return {
@@ -206,33 +107,21 @@ export const getSubmission = async (id: string): Promise<Submission | null> => {
   return normalizeSubmission(snapshot.id, snapshot.data() as Partial<Submission>)
 }
 
-export const updateSubmission = async (id: string, patch: Partial<Submission>): Promise<void> => {
-  const publicPatch = pickSubmissionPublicFields(patch as unknown as Record<string, unknown>)
-  delete publicPatch.createdAt
-  delete publicPatch.status
-  delete (publicPatch as Partial<Submission>).uid
-  delete (publicPatch as Partial<Submission>).username
-  delete (publicPatch as Partial<Submission>).displayName
-
-  const shouldUpdateSearch = ['title', 'text', 'meaning', 'type'].some((key) => key in publicPatch)
-  if (shouldUpdateSearch) {
-    const type = (publicPatch.type ?? patch.type ?? 'Proverb') as SubmissionType
-    const title = typeof publicPatch.title === 'string' ? publicPatch.title : ''
-    const text = typeof publicPatch.text === 'string' ? publicPatch.text : ''
-    const meaning = typeof publicPatch.meaning === 'string' ? publicPatch.meaning : ''
-    const username = typeof patch.username === 'string' ? patch.username : null
-    const searchFields = buildSubmissionSearchFields({ type, title, text, meaning, username })
-    publicPatch.searchIndex = searchFields.searchIndex
-    publicPatch.searchKeywords = searchFields.searchKeywords
-  }
-
-  if (!Object.keys(publicPatch).length) return
-
-  const submissionRef = doc(db, 'submissions', id)
-  await updateDoc(submissionRef, {
-    ...publicPatch,
-    updatedAt: Date.now(),
+export const updateSubmission = async (id: string, patch: Partial<Submission>): Promise<Submission> => {
+  const result = await updateSubmissionCallable({
+    id,
+    patch: {
+      ...(patch.type !== undefined && { type: patch.type }),
+      ...(patch.title !== undefined && { title: patch.title }),
+      ...(patch.text !== undefined && { text: patch.text }),
+      ...(patch.meaning !== undefined && { meaning: patch.meaning }),
+      ...(patch.translation !== undefined && { translation: patch.translation }),
+      ...(patch.language !== undefined && { language: patch.language }),
+      ...(patch.origin !== undefined && { origin: patch.origin }),
+      ...(patch.source !== undefined && { source: patch.source }),
+    },
   })
+  return result.submission
 }
 
 export const updateSubmissionStatus = async (
@@ -302,70 +191,80 @@ export const searchSubmissions = async (
     status = 'published',
     lastPrefixDoc = null,
     lastKeywordDoc = null,
+    skipPrefix = false,
+    skipKeyword = false,
   }: {
     limit?: number
     status?: SubmissionStatusFilter
     lastPrefixDoc?: QueryDocumentSnapshot | null
     lastKeywordDoc?: QueryDocumentSnapshot | null
+    skipPrefix?: boolean
+    skipKeyword?: boolean
   } = {},
 ): Promise<{
   items: Submission[]
   lastPrefixDoc: QueryDocumentSnapshot | null
   lastKeywordDoc: QueryDocumentSnapshot | null
   hasMore: boolean
+  prefixHasMore: boolean
+  keywordHasMore: boolean
 }> => {
   const normalizedTerm = term.trim().toLowerCase()
   if (!normalizedTerm) {
-    return { items: [], lastPrefixDoc: null, lastKeywordDoc: null, hasMore: false }
+    return { items: [], lastPrefixDoc: null, lastKeywordDoc: null, hasMore: false, prefixHasMore: false, keywordHasMore: false }
   }
 
   const perQueryLimit = Math.max(1, Math.ceil(limit / 2))
   const statusFilter = status !== 'all' ? where('status', '==', status) : null
 
-  const prefixConstraints: QueryConstraint[] = [
-    ...(statusFilter ? [statusFilter] : []),
-    where('searchIndex', '>=', normalizedTerm),
-    where('searchIndex', '<=', normalizedTerm + '\uf8ff'),
-    orderBy('searchIndex'),
-    limitResults(perQueryLimit),
-  ]
-  if (lastPrefixDoc) {
-    prefixConstraints.push(startAfter(lastPrefixDoc))
-  }
+  // Build queries, skipping exhausted ones on loadMore
+  const prefixPromise = skipPrefix
+    ? Promise.resolve(null)
+    : getDocs(
+        query(collection(db, 'submissions'), ...[
+          ...(statusFilter ? [statusFilter] : []),
+          where('searchIndex', '>=', normalizedTerm),
+          where('searchIndex', '<=', normalizedTerm + '\uf8ff'),
+          orderBy('searchIndex'),
+          limitResults(perQueryLimit),
+          ...(lastPrefixDoc ? [startAfter(lastPrefixDoc)] : []),
+        ]),
+      )
 
-  const keywordConstraints: QueryConstraint[] = [
-    ...(statusFilter ? [statusFilter] : []),
-    where('searchKeywords', 'array-contains', normalizedTerm),
-    limitResults(perQueryLimit),
-  ]
-  if (lastKeywordDoc) {
-    keywordConstraints.push(startAfter(lastKeywordDoc))
-  }
+  const keywordPromise = skipKeyword
+    ? Promise.resolve(null)
+    : getDocs(
+        query(collection(db, 'submissions'), ...[
+          ...(statusFilter ? [statusFilter] : []),
+          where('searchKeywords', 'array-contains', normalizedTerm),
+          limitResults(perQueryLimit),
+          ...(lastKeywordDoc ? [startAfter(lastKeywordDoc)] : []),
+        ]),
+      )
 
-  const [prefixSnap, keywordSnap] = await Promise.all([
-    getDocs(query(collection(db, 'submissions'), ...prefixConstraints)),
-    getDocs(query(collection(db, 'submissions'), ...keywordConstraints)),
-  ])
+  const [prefixSnap, keywordSnap] = await Promise.all([prefixPromise, keywordPromise])
 
   const resultMap = new Map<string, Submission>()
-  prefixSnap.docs.forEach((docSnap) => {
+  prefixSnap?.docs.forEach((docSnap) => {
     resultMap.set(docSnap.id, normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
   })
-  keywordSnap.docs.forEach((docSnap) => {
+  keywordSnap?.docs.forEach((docSnap) => {
     if (!resultMap.has(docSnap.id)) {
       resultMap.set(docSnap.id, normalizeSubmission(docSnap.id, docSnap.data() as Partial<Submission>))
     }
   })
 
-  const hasMore = prefixSnap.docs.length === perQueryLimit || keywordSnap.docs.length === perQueryLimit
-  const nextPrefixDoc = prefixSnap.docs[prefixSnap.docs.length - 1] ?? null
-  const nextKeywordDoc = keywordSnap.docs[keywordSnap.docs.length - 1] ?? null
+  const prefixHasMore = !skipPrefix && (prefixSnap?.docs.length ?? 0) === perQueryLimit
+  const keywordHasMore = !skipKeyword && (keywordSnap?.docs.length ?? 0) === perQueryLimit
+  const hasMore = prefixHasMore || keywordHasMore
 
   return {
     items: Array.from(resultMap.values()),
-    lastPrefixDoc: nextPrefixDoc,
-    lastKeywordDoc: nextKeywordDoc,
+    lastPrefixDoc: prefixSnap?.docs[prefixSnap.docs.length - 1] ?? null,
+    lastKeywordDoc: keywordSnap?.docs[keywordSnap.docs.length - 1] ?? null,
     hasMore,
+    prefixHasMore,
+    keywordHasMore,
   }
 }
 

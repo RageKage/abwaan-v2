@@ -24,7 +24,6 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(auth.currentUser)
   const busy = ref(false)
   const error = ref<string | null>(null)
-  const profileStore = useProfileStore()
 
   const setError = (err: unknown) => {
     if (err instanceof Error) {
@@ -87,6 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function initAuthListener() {
     if (didInit) return
     didInit = true
+
+    const profileStore = useProfileStore()
 
     // ensures login survives refresh/browser restart
     await setPersistence(auth, browserLocalPersistence)

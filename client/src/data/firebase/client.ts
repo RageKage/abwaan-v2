@@ -1,5 +1,11 @@
 import { initializeApp, getApp, getApps } from 'firebase/app'
-import { getFirestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore'
+import {
+  initializeFirestore,
+  getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  connectFirestoreEmulator,
+} from 'firebase/firestore'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
@@ -11,10 +17,29 @@ const firebaseConfig = {
 
 const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
-export const db = getFirestore(firebaseApp)
+function createFirestore() {
+  // In dev, emulators are in-memory — no persistence needed.
+  if (import.meta.env.DEV) {
+    return getFirestore(firebaseApp)
+  }
+
+  // In production, configure multi-tab IndexedDB persistence at init time.
+  // This replaces the deprecated enableMultiTabIndexedDbPersistence API.
+  try {
+    return initializeFirestore(firebaseApp, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    })
+  } catch {
+    // Firestore already initialized (e.g., HMR or duplicate module load).
+    return getFirestore(firebaseApp)
+  }
+}
+
+export const db = createFirestore()
 export const auth = getAuth(firebaseApp)
 export const functions = getFunctions(firebaseApp)
-export const fn = functions
 
 const emulatorFlag = '__firebase_emulators_connected__'
 const globalFlags = globalThis as unknown as Record<string, boolean>
@@ -24,10 +49,4 @@ if (import.meta.env.DEV && !globalFlags[emulatorFlag]) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
   connectFunctionsEmulator(functions, '127.0.0.1', 5001)
   globalFlags[emulatorFlag] = true
-}
-
-if (!import.meta.env.DEV) {
-  enableMultiTabIndexedDbPersistence(db).catch(() => {
-    // Persistence can fail in some environments (private mode, blocked storage).
-  })
 }
