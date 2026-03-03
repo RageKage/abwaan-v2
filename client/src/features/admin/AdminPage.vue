@@ -24,13 +24,13 @@ const reportCounts = ref<Record<string, number>>({})
 const reportCountsReady = ref(false)
 const errorMessage = computed(() =>
   activeTab.value === 'submissions'
-    ? 'We could not load the moderation queue. Please try again.'
+    ? 'We could not load the reported content. Please try again.'
     : 'We could not load reports right now. Please try again.',
 )
 const emptyTitle = computed(() => (activeTab.value === 'submissions' ? 'Queue is clear' : 'No reports to review'))
 const emptyDescription = computed(() => {
   if (activeTab.value === 'submissions') {
-    return 'No submissions need moderation right now.'
+    return 'No flagged submissions right now.'
   }
   return 'Reports will show up here when the community flags content.'
 })
@@ -110,7 +110,7 @@ const loadReportCounts = async () => {
 
 const handleToggleStatus = async (submission: Submission) => {
   const nextStatus: SubmissionStatus =
-    submission.status === 'hidden' || submission.status === 'pending' ? 'published' : 'hidden'
+    submission.status === 'hidden' ? 'published' : 'hidden'
   try {
     await submissionsStore.setStatus(submission.id, nextStatus)
     toastSuccess(nextStatus === 'hidden' ? 'Submission hidden' : 'Submission restored')
@@ -203,7 +203,7 @@ watch([activeReportStatus, activeTab], () => {
             <div class="flex flex-wrap p-4 gap-2">
               <template v-if="activeTab === 'submissions'">
                 <button
-                  v-for="status in ['pending', 'hidden', 'published']"
+                  v-for="status in ['hidden', 'published']"
                   :key="status"
                   @click="activeStatus = status as any"
                   class="px-3 py-1 border border-gray-900 text-[10px] font-bold uppercase tracking-widest transition-colors"
@@ -243,7 +243,7 @@ watch([activeReportStatus, activeTab], () => {
       <div v-else-if="showErrorState" class="border-b border-gray-200 bg-white">
         <EmptyState
           eyebrow="Admin Desk"
-          :title="activeTab === 'submissions' ? 'Unable to load moderation queue' : 'Unable to load reports'"
+          :title="activeTab === 'submissions' ? 'Unable to load reported submissions' : 'Unable to load reports'"
           :description="errorMessage"
           primary-label="Try Again"
           :primary-action="handleRetry"
@@ -311,10 +311,10 @@ watch([activeReportStatus, activeTab], () => {
                 class="flex items-center gap-2 px-4 py-2 border border-gray-900 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-colors"
               >
                 <component
-                  :is="submission.status === 'hidden' || submission.status === 'pending' ? CheckIcon : EyeSlashIcon"
-                  class="w-3 h-3"
+                  :is="submission.status === 'hidden' ? CheckIcon : EyeSlashIcon"
+                  class="h-4 w-4"
                 />
-                {{ submission.status === 'hidden' || submission.status === 'pending' ? 'Approve' : 'Hide' }}
+                {{ submission.status === 'hidden' ? 'Approve' : 'Hide' }}
               </button>
             </div>
           </article>

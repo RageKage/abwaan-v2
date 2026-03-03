@@ -1,7 +1,8 @@
 export type SubmissionType = 'Proverb' | 'Poetry'
 export type LanguageCode = 'so' | 'en'
 export type SubmissionOrigin = 'original' | 'shared' | 'unknown'
-export type SubmissionStatus = 'published' | 'pending' | 'hidden'
+// Reddit-style: submissions are always 'published' unless admin hides them after report review
+export type SubmissionStatus = 'published' | 'hidden'
 
 export type SubmissionSource = {
   name: string

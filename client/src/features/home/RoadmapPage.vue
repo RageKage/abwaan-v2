@@ -58,7 +58,7 @@ const phases = [
       {
         id: 'f-4',
         title: 'Moderation',
-        desc: 'A reactive safety system. All submissions are published immediately, but community reports will trigger a "pending" status for admin review.',
+        desc: 'A reactive safety system. All submissions are published immediately. Community reports flag content for admin review—admins can then hide or restore submissions.',
       },
       {
         id: 'f-5',

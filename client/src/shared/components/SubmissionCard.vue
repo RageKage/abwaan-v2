@@ -7,6 +7,7 @@ import {
   submissionAuthorLabel,
   submissionPreviewText,
 } from '@/shared/utils/submissions'
+import { sanitizeText } from '@/shared/utils/sanitize'
 
 const router = useRouter()
 
@@ -55,19 +56,17 @@ const handleCardKeydown = (event: KeyboardEvent) => {
       <h2
         class="text-3xl md:text-4xl font-serif text-gray-900 leading-tight group-hover:text-carrotOrange-600 transition-colors line-clamp-3 mb-4"
       >
-        <span v-if="props.submission.type === 'Proverb'">
-          {{ props.submission.text }}
+        <span v-if="props.submission.type === 'Proverb'" v-html="sanitizeText(props.submission.text)">
         </span>
-        <span v-else>
-          {{ props.submission.title || 'Untitled Poem' }}
+        <span v-else v-html="sanitizeText(props.submission.title || 'Untitled Poem')">
         </span>
       </h2>
 
       <p
         v-if="props.submission.type === 'Poetry'"
         class="font-serif text-lg text-gray-500 italic line-clamp-3 border-l-2 border-gray-100 pl-4 group-hover:border-carrotOrange-200 transition-colors"
+        v-html="'&quot;' + sanitizeText(submissionPreviewText(props.submission)) + '&quot;'"
       >
-        "{{ submissionPreviewText(props.submission) }}"
       </p>
     </div>
 

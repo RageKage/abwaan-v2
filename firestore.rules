@@ -157,7 +157,12 @@ service cloud.firestore {
         && request.resource.data.voteUp == resource.data.voteUp
         && request.resource.data.voteDown == resource.data.voteDown
         && request.resource.data.voteScore == resource.data.voteScore
-        && request.resource.data.updatedBy == request.auth.uid)
+        && request.resource.data.updatedBy == request.auth.uid
+        // Field length validation (max lengths from Cloud Functions)
+        && (!('title' in request.resource.data) || request.resource.data.title == null || (request.resource.data.title is string && request.resource.data.title.size() >= 3 && request.resource.data.title.size() <= 120))
+        && (request.resource.data.text is string && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 4000)
+        && (request.resource.data.meaning is string && request.resource.data.meaning.size() >= 1 && request.resource.data.meaning.size() <= 2000)
+        && (!('translation' in request.resource.data) || request.resource.data.translation == null || (request.resource.data.translation is string && request.resource.data.translation.size() <= 2000)))
         || isAdmin();
       allow delete: if isOwner(resource.data.uid) || isAdmin();
 

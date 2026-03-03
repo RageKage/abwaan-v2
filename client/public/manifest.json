@@ -1,0 +1,17 @@
+{
+  "name": "Abwaan - Somali Poetry & Proverbs",
+  "short_name": "Abwaan",
+  "description": "Discover and share traditional Somali poetry and proverbs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

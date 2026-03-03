@@ -22,6 +22,7 @@ import {
   formatSubmissionDate,
 } from '@/shared/utils/submissions'
 import { confirmAction, toastError, toastSuccess } from '@/shared/utils/alerts'
+import { sanitizeText } from '@/shared/utils/sanitize'
 import EmptyState from '@/shared/components/EmptyState.vue'
 import { useCommentsStore } from '@/features/submissions/comments.store'
 import CommentForm from '@/features/submissions/CommentForm.vue'
@@ -533,15 +534,15 @@ watch(showReportModal, async (open) => {
                 </div>
 
                 <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl leading-tight text-gray-900 mb-8">
-                  <span v-if="submission.type === 'Proverb'">{{ submission.text }}</span>
-                  <span v-else>{{ submission.title || 'Untitled Piece' }}</span>
+                  <span v-if="submission.type === 'Proverb'" v-html="sanitizeText(submission.text)"></span>
+                  <span v-else v-html="sanitizeText(submission.title || 'Untitled Piece')"></span>
                 </h1>
 
                 <div v-if="submission.type === 'Poetry'" class="prose prose-xl prose-gray max-w-none">
                   <p
                     class="whitespace-pre-line font-serif leading-loose text-gray-600 italic border-l-2 border-carrotOrange-500 pl-8"
+                    v-html="'&quot;' + sanitizeText(submission.text) + '&quot;'"
                   >
-                    "{{ submission.text }}"
                   </p>
                 </div>
               </div>
@@ -552,14 +553,13 @@ watch(showReportModal, async (open) => {
               >
                 <div v-if="submission.meaning" class="group">
                   <span class="block text-xs font-mono text-gray-400 mb-4">/// INTERPRETATION</span>
-                  <p class="text-xl text-gray-800 font-light leading-relaxed">
-                    {{ submission.meaning }}
+                  <p class="text-xl text-gray-800 font-light leading-relaxed" v-html="sanitizeText(submission.meaning)">
                   </p>
                 </div>
 
                 <div v-if="submission.translation" class="group">
                   <span class="block text-xs font-mono text-gray-400 mb-4">/// ENGLISH TRANSLATION</span>
-                  <p class="text-xl font-serif italic text-gray-500 leading-relaxed">"{{ submission.translation }}"</p>
+                  <p class="text-xl font-serif italic text-gray-500 leading-relaxed" v-html="'&quot;' + sanitizeText(submission.translation) + '&quot;'"></p>
                 </div>
               </div>
 
@@ -571,9 +571,8 @@ watch(showReportModal, async (open) => {
                   Historical Reference
                 </span>
                 <div class="grid gap-2">
-                  <p class="text-lg font-serif text-gray-900">{{ submission.source.name }}</p>
-                  <p v-if="submission.source.notes" class="text-sm text-gray-500 italic">
-                    {{ submission.source.notes }}
+                  <p class="text-lg font-serif text-gray-900" v-html="sanitizeText(submission.source.name)"></p>
+                  <p v-if="submission.source.notes" class="text-sm text-gray-500 italic" v-html="sanitizeText(submission.source.notes)">
                   </p>
                   <a
                     v-if="submission.source.url"

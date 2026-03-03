@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Comment } from '@/data/models/comment'
 import { formatSubmissionDate } from '@/shared/utils/submissions'
+import { sanitizeText } from '@/shared/utils/sanitize'
 import LoadMore from '@/shared/components/LoadMore.vue'
 
 const props = defineProps<{
@@ -79,8 +80,7 @@ const canDeleteComment = (comment: Comment) => (props.canDelete ? props.canDelet
           </div>
 
           <div class="md:col-span-9 p-6 md:p-8 bg-white group-hover:bg-gray-50/20 transition-colors">
-            <p class="font-serif text-lg leading-relaxed text-gray-800 whitespace-pre-line">
-              {{ comment.body }}
+            <p class="font-serif text-lg leading-relaxed text-gray-800 whitespace-pre-line" v-html="sanitizeText(comment.body)">
             </p>
           </div>
         </div>
